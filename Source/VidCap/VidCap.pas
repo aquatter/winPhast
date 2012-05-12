@@ -150,6 +150,7 @@ type
     procedure SetResolution(w,h:Integer);
     procedure GetResolution(var w, h: integer);
     procedure SetVideoMode(val:Integer);
+    procedure GetVideoMode(var val: integer);
     procedure UpdateCapDevList;
     procedure SelectCapDevice(index:Integer);
 
@@ -730,7 +731,8 @@ begin
 end;
 procedure TVidCap.SetVideoMode(val: Integer);
 begin
-  aAnalogVideo.put_TVFormat(val);
+  if aAnalogVideo <> nil then
+    aAnalogVideo.put_TVFormat(val);
 end;
 
 //------------------------------------------------------------------------------
@@ -791,6 +793,11 @@ begin
         //pEnumCat._Release;
     end;
 end;
+procedure TVidCap.GetVideoMode(var val: integer);
+begin
+  aAnalogVideo.get_TVFormat(val);
+end;
+
 //------------------------------------------------------------------------------
 procedure TVidCap.StartStream;
 begin

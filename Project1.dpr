@@ -47,7 +47,9 @@ uses
   UTwoWaveLengthThread in 'Source\UTwoWaveLengthThread.pas',
   UTest_Com_Port_Form in 'Source\UTest_Com_Port_Form.pas' {Test_Com_Port_Form},
   USaveAsForm in 'Source\USaveAsForm.pas' {SaveAsForm},
-  UFizo in 'Source\UFizo.pas';
+  UFizo in 'Source\UFizo.pas',
+  UPTree in 'Source\Common\UPTree.pas',
+  UProjectData in 'Source\UProjectData.pas';
 
 {$R *.res}
 {$R new.res}
@@ -55,7 +57,7 @@ uses
 begin
   InitDriver;
   Application.Initialize;
-  Application.Title := 'winPha  st';
+  Application.Title := 'winPhast';
   Application.CreateForm(TForm1, Form1);
   Application.CreateForm(TForm2, Form2);
   Application.CreateForm(TForm3, Form3);

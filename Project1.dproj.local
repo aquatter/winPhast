@@ -1,2 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<BorlandProject/>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2012.05.08 19:38:33.953.pas,F:\Files\Delphi Files\winPhast\Unit11.pas=F:\Files\Delphi Files\winPhast\Source\Common\UPTree.pas</Transaction>
+    <Transaction>2012.05.08 21:01:15.671.pas,F:\Files\Delphi Files\winPhast\Unit11.pas=F:\Files\Delphi Files\winPhast\Source\UProjectData.pas</Transaction>
+  </Transactions>
+</BorlandProject>

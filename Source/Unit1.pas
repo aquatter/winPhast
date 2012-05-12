@@ -250,6 +250,7 @@ type
     N114: TMenuItem;
     N115: TMenuItem;
     N116: TMenuItem;
+    test1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure ToolButton3Click(Sender: TObject);
     procedure ToolButton4Click(Sender: TObject);
@@ -394,6 +395,7 @@ type
     procedure N113Click(Sender: TObject);
     procedure N115Click(Sender: TObject);
     procedure N116Click(Sender: TObject);
+    procedure test1Click(Sender: TObject);
 
 
 
@@ -452,7 +454,6 @@ type
   end;
 
 
-
 var
   Form1: TForm1;
 
@@ -462,7 +463,7 @@ uses Unit7, UBaseRunThread, URaznForm, UVideoCaptureSeqThread, URecSeqThread, UP
      URecSeqThreadForm, ULoadSeqForm, ULunkaRunhread, ULoadSeqLunkaForm, ULunkaSeqResultsForm, URaRzRmaxForm,
      UWhat2CalcForm, UReportForm, VidCap, UDirectShowVideoForm, UDirectShowCaptureThread,
      UInitComThread, UTInitComThreadForm, UWatchComThread, USetLazerThread, UTwoWaveLengthDialogForm,
-     UTwoWaveLengthClass, UTwoWaveLengthThread, USaveAsForm;
+     UTwoWaveLengthClass, UTwoWaveLengthThread, USaveAsForm, UPTree, UProjectData;
 
 {$R *.dfm}
 
@@ -500,6 +501,9 @@ begin
   tilt2:=TMyInfernalType.Create;
   buff:=TMyInfernalType.Create;
   Fizo_Steps:=TMyInfernalType.Create;
+
+  ProjectData:= TProjectData.Create;
+
   from:=fromCamera;
   _origin:=false;
 
@@ -685,21 +689,40 @@ end;
 
 procedure TForm1.InitialiseArrays;
 var s: string;
-    w,h: integer;
+    w, h, i: integer;
+    rec_: TRec;
 begin
+  ProjectData.Clear;
+
   case from of
     fromCamera: begin
                  s:=cfg.img_path+'\cadr_i1_s1_c1.bmp';
                 end;
     fromHDD: begin
-               if form2.ListView2.Items.Count = 0 then exit;
                s:=Form2.ListView2.Items[0].SubItems[1];
+               ProjectData.prop_.WaveLength:= cfg.lambda;
+               ProjectData.prop_.file_path:= ExtractFilePath(s);
+               ProjectData.prop_.file_name:='New Project';
+               rec_:=ProjectData.Add.Add;
+
+               if form2.ListView2.Items.Count = 0 then exit;
+               for i:=0 to form2.ListView2.Items.Count-1 do
+                 rec_.img.Add(ExtractFileName(Form2.ListView2.Items[i].SubItems[1]));
+
+               rec_.phase:='None';
+               rec_.unwrap:='None';
                cfg.steps:=Form2.ListView2.Items.Count;
              end;
   end;
+
   LoadBmp(int, s, varByte);
   w:=int.w;
   h:=int.h;
+
+  ProjectData.prop_.w:=w;
+  ProjectData.prop_.h:=h;
+
+  SaveProject(ProjectData.prop_.file_path +ProjectData.prop_.file_name+'.winPhast', ProjectData);
 
   cfg.cam_w:=w;
   cfg.cam_h:=h;
@@ -828,6 +851,7 @@ begin
   buff.Destroy;
   Fizo_Steps.Destroy;
   CommPortDriver1.Destroy;
+  ProjectData.Destroy;
 
   WriteINI(cfg, ExtractFileDir(Application.ExeName)+'\phast.ini');
 //  SaveParams;
@@ -2375,6 +2399,47 @@ begin
     cfg.Step_Motor_Curr_Pos:=cfg.Step_Motor_Curr_Pos+steps
   else
     cfg.Step_Motor_Curr_Pos:=cfg.Step_Motor_Curr_Pos-steps;
+
+end;
+
+procedure TForm1.test1Click(Sender: TObject);
+{var d : double;
+    h: HINST;
+    p: pointer;
+    str: string;
+    p1: array[0..15] of char;
+ }
+ var s: AnsiString;
+     pt: pointer;
+begin
+  {
+  pt:= ptree_init;
+                       s:='node1.node2';
+  ptree_set_string(pt, @s, 'Some Text');
+
+  ptree_write_xml(pt, 'e:\temp.xml');
+  ptree_shutdown(pt);
+  exit;
+  }
+  SaveDialog1.Filter:='*.winPhast| winPhast project files';
+  SaveDialog1.FileName:= ProjectData.prop_.file_name;
+
+  if not SaveDialog1.Execute() then
+    exit;
+
+  s:= SaveDialog1.FileName;
+  ChangeFileExt(s, '.winPhast');
+
+  SaveProject(s, ProjectData);
+
+  {
+  p:= ptree_init();
+  ptree_set_int(p, 'shit.int_value', 10);
+  ptree_set_double(p, 'shit.double_value', 1123.234);
+  ptree_set_string(p, 'shit.string', 'string_value');
+  ptree_write_xml(p, 'e:\\temp.xml');
+  ptree_shutdown(p);
+  }
 
 end;
 

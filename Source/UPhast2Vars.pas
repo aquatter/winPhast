@@ -2,7 +2,7 @@ unit UPhast2Vars;
 
 interface
 
-uses t666, panel1, utype, windows, VidCap;
+uses t666, panel1, utype, windows, VidCap, UProjectData;
 
 type
 TConfig = record
@@ -109,6 +109,7 @@ var
   ComConnected, ComEnabled: boolean;
   LazPos: integer;
   VideoScanEnabled: boolean;
+  ProjectData: TProjectData;
 
 implementation
 

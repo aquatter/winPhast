@@ -32,8 +32,8 @@ object Form1: TForm1
     ExplicitTop = 346
   end
   object ControlBar1: TControlBar
-    Left = 8
-    Top = 159
+    Left = 376
+    Top = 367
     Width = 857
     Height = 65
     BevelEdges = [beBottom]
@@ -46,7 +46,7 @@ object Form1: TForm1
       Left = 11
       Top = 2
       Width = 215
-      Height = 30
+      Height = 22
       AutoSize = True
       ButtonHeight = 30
       ButtonWidth = 31
@@ -88,7 +88,7 @@ object Form1: TForm1
       Left = 239
       Top = 2
       Width = 71
-      Height = 30
+      Height = 22
       AutoSize = True
       ButtonHeight = 30
       ButtonWidth = 31
@@ -120,7 +120,7 @@ object Form1: TForm1
       Left = 323
       Top = 2
       Width = 102
-      Height = 30
+      Height = 22
       AutoSize = True
       ButtonHeight = 30
       ButtonWidth = 31
@@ -225,10 +225,6 @@ object Form1: TForm1
       object TabSheet2: TTabSheet
         Caption = 'Calibration'
         ImageIndex = 1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object ToolBar7: TToolBar
           Left = 0
           Top = 0
@@ -281,26 +277,14 @@ object Form1: TForm1
       object TabSheet3: TTabSheet
         Caption = 'Dynamic'
         ImageIndex = 2
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
       end
       object TabSheet4: TTabSheet
         Caption = 'Fft'
         ImageIndex = 3
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
       end
       object TabSheet5: TTabSheet
         Caption = 'Histogram'
         ImageIndex = 4
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object ToolBar3: TToolBar
           Left = 0
           Top = 0
@@ -357,7 +341,7 @@ object Form1: TForm1
       Left = 239
       Top = 80
       Width = 120
-      Height = 21
+      Height = 22
       BevelEdges = []
       BevelInner = bvNone
       BevelOuter = bvNone
@@ -906,8 +890,8 @@ object Form1: TForm1
     Height = 24
     ShareImages = True
     Width = 24
-    Left = 377
-    Top = 205
+    Left = 1017
+    Top = 269
     Bitmap = {
       494C01010F001100040018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000600000006000000001002000000000000090
@@ -2105,8 +2089,8 @@ object Form1: TForm1
       000000000000}
   end
   object ImageList4: TImageList
-    Left = 411
-    Top = 204
+    Left = 1051
+    Top = 268
     Bitmap = {
       494C01011B001D00040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000007000000001002000000000000070
@@ -3040,13 +3024,13 @@ object Form1: TForm1
       000000000000}
   end
   object OpenDialog1: TOpenDialog
-    Left = 450
-    Top = 204
+    Left = 1090
+    Top = 268
   end
   object MainMenu1: TMainMenu
     Images = ImageList4
-    Left = 483
-    Top = 202
+    Left = 1123
+    Top = 266
     object N1: TMenuItem
       Caption = #1060#1072#1081#1083
       object N99: TMenuItem
@@ -3110,6 +3094,10 @@ object Form1: TForm1
         RadioItem = True
         ShortCut = 16465
         OnClick = ToolButton19Click
+      end
+      object test1: TMenuItem
+        Caption = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1087#1088#1086#1077#1082#1090
+        OnClick = test1Click
       end
     end
     object N23: TMenuItem
@@ -3584,15 +3572,15 @@ object Form1: TForm1
     end
   end
   object SaveDialog1: TSaveDialog
-    Left = 519
-    Top = 204
+    Left = 1159
+    Top = 268
   end
   object ImageList2: TImageList
     Height = 24
     ShareImages = True
     Width = 24
-    Left = 554
-    Top = 204
+    Left = 1194
+    Top = 268
     Bitmap = {
       494C01010F001100040018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000600000006000000001002000000000000090
@@ -4792,8 +4780,8 @@ object Form1: TForm1
   object ImageList3: TImageList
     Height = 32
     Width = 32
-    Left = 379
-    Top = 124
+    Left = 1019
+    Top = 188
     Bitmap = {
       494C01010B000D00040020002000FFFFFFFFFF00FFFFFFFFFFFFFFFF424D3600
       00000000000036000000280000008000000060000000010020000000000000C0
@@ -6388,8 +6376,8 @@ object Form1: TForm1
   object ImageList5: TImageList
     Height = 32
     Width = 32
-    Left = 444
-    Top = 125
+    Left = 1084
+    Top = 189
     Bitmap = {
       494C010106000800040020002000FFFFFFFFFF00FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000004000000001002000000000000080
