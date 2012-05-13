@@ -34,3 +34,5 @@ _ReSharper*/
 *.~pas
 *.~dpr
 __history/
+*.identcache
+

@@ -82,7 +82,7 @@ procedure InitComThreadStart;
 begin
   InitComThread:=TInitComThread.Create(true);
   InitComThread.FreeOnTerminate:=true;
-  InitComThread.Resume;
+  InitComThread.Start;
 //  form1.Off(false);
 //  InitComThreadForm.Show;
 end;

@@ -251,6 +251,10 @@ type
     N115: TMenuItem;
     N116: TMenuItem;
     test1: TMenuItem;
+    Panel2: TPanel;
+    Splitter1: TSplitter;
+    Panel3: TPanel;
+    N117: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure ToolButton3Click(Sender: TObject);
     procedure ToolButton4Click(Sender: TObject);
@@ -396,6 +400,8 @@ type
     procedure N115Click(Sender: TObject);
     procedure N116Click(Sender: TObject);
     procedure test1Click(Sender: TObject);
+    procedure Panel3Click(Sender: TObject);
+    procedure N117Click(Sender: TObject);
 
 
 
@@ -442,6 +448,8 @@ type
     procedure Move2Start;
     procedure SetLazer;
     procedure MoveMirrorCom(pos: word);
+    procedure VtGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+    TextType: TVSTTextType; var CellText: UnicodeString);
   end;
 
   TRunThread = class(TThread)
@@ -463,7 +471,7 @@ uses Unit7, UBaseRunThread, URaznForm, UVideoCaptureSeqThread, URecSeqThread, UP
      URecSeqThreadForm, ULoadSeqForm, ULunkaRunhread, ULoadSeqLunkaForm, ULunkaSeqResultsForm, URaRzRmaxForm,
      UWhat2CalcForm, UReportForm, VidCap, UDirectShowVideoForm, UDirectShowCaptureThread,
      UInitComThread, UTInitComThreadForm, UWatchComThread, USetLazerThread, UTwoWaveLengthDialogForm,
-     UTwoWaveLengthClass, UTwoWaveLengthThread, USaveAsForm, UPTree, UProjectData;
+     UTwoWaveLengthClass, UTwoWaveLengthThread, USaveAsForm, UPTree, UProjectData, Uvt;
 
 {$R *.dfm}
 
@@ -479,6 +487,7 @@ begin
   pnl.OnResize:=PnlResize;
   pnl.Contrast_mask:=1;
 
+  InitVt;
 
   phase:=TMyInfernalType.Create;
   unwrap:=TMyInfernalType.Create;
@@ -852,6 +861,7 @@ begin
   Fizo_Steps.Destroy;
   CommPortDriver1.Destroy;
   ProjectData.Destroy;
+  vt.Free;
 
   WriteINI(cfg, ExtractFileDir(Application.ExeName)+'\phast.ini');
 //  SaveParams;
@@ -2702,6 +2712,24 @@ begin
     ShowMessage('Расчет не проведен. Увы...');
 end;
 
+procedure TForm1.Panel3Click(Sender: TObject);
+begin
+  if Panel2.Width > 15 then
+  begin
+    Panel2.Width:= 15;
+    Panel3.Caption:= '>>';
+    Panel3.Hint:='Развернуть';
+  end
+  else
+  begin
+    Panel2.Width:= 250;
+    Panel3.Caption:= '<<';
+    Panel3.Hint:='Свернуть';
+  end;
+
+
+end;
+
 procedure TForm1.PnlMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var p, m: PMyInfernalType;
@@ -2715,7 +2743,6 @@ begin
    Series2.Clear;
    LineSeries1.Clear;
    PointSeries1.Clear;
-
    {Form3.Series1.Clear;
    Form4.Series1.Clear;
    Form3.Series2.Clear;
@@ -2866,6 +2893,17 @@ begin
     Label10.Caption:=FloatToStrF(8*(max-min)/9+min, ffFixed, 5, 2);
     Label11.Caption:=FloatToStrF(max, ffFixed, 5, 2);
   end;
+end;
+
+procedure TForm1.VtGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; TextType: TVSTTextType; var CellText: UnicodeString);
+var d: PVtNodeData;
+begin
+
+  d:= PVtNodeData(vt.GetNodeData(Node));
+  if d <> nil then
+    CellText:= 'fuck';
+
 end;
 
 procedure TForm1.WM_WMCapDone(var msg: TMessage);
@@ -5440,6 +5478,18 @@ begin
 
   r:=r*1e-6;
   ShowMessage('Радиус поверхности ' + FloatToStrF(r, ffFixed, 7, 2)+ ' мм.');
+end;
+
+procedure TForm1.N117Click(Sender: TObject);
+begin
+  OpenDialog1.Filter:='winPhast project files|*.winPhast';
+
+  if not OpenDialog1.Execute() then
+    exit;
+
+  if OpenProject(AnsiString(OpenDialog1.FileName), ProjectData) then
+    AddToVt(ProjectData);
+
 end;
 
 procedure TForm1.N11Click(Sender: TObject);

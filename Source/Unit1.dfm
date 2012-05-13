@@ -3,7 +3,7 @@ object Form1: TForm1
   Top = 100
   Caption = 'winPhast'
   ClientHeight = 530
-  ClientWidth = 741
+  ClientWidth = 1226
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -22,7 +22,7 @@ object Form1: TForm1
   object Splitter2: TSplitter
     Left = 0
     Top = 320
-    Width = 741
+    Width = 1226
     Height = 3
     Cursor = crVSplit
     Align = alBottom
@@ -30,10 +30,21 @@ object Form1: TForm1
     ParentColor = False
     Visible = False
     ExplicitTop = 346
+    ExplicitWidth = 741
+  end
+  object Splitter1: TSplitter
+    Left = 250
+    Top = 72
+    Height = 248
+    Color = clBlack
+    ParentColor = False
+    ExplicitLeft = 776
+    ExplicitTop = 368
+    ExplicitHeight = 100
   end
   object ControlBar1: TControlBar
-    Left = 376
-    Top = 367
+    Left = 976
+    Top = 359
     Width = 857
     Height = 65
     BevelEdges = [beBottom]
@@ -46,7 +57,7 @@ object Form1: TForm1
       Left = 11
       Top = 2
       Width = 215
-      Height = 22
+      Height = 30
       AutoSize = True
       ButtonHeight = 30
       ButtonWidth = 31
@@ -88,7 +99,7 @@ object Form1: TForm1
       Left = 239
       Top = 2
       Width = 71
-      Height = 22
+      Height = 30
       AutoSize = True
       ButtonHeight = 30
       ButtonWidth = 31
@@ -120,7 +131,7 @@ object Form1: TForm1
       Left = 323
       Top = 2
       Width = 102
-      Height = 22
+      Height = 30
       AutoSize = True
       ButtonHeight = 30
       ButtonWidth = 31
@@ -225,6 +236,10 @@ object Form1: TForm1
       object TabSheet2: TTabSheet
         Caption = 'Calibration'
         ImageIndex = 1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object ToolBar7: TToolBar
           Left = 0
           Top = 0
@@ -277,14 +292,26 @@ object Form1: TForm1
       object TabSheet3: TTabSheet
         Caption = 'Dynamic'
         ImageIndex = 2
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
       end
       object TabSheet4: TTabSheet
         Caption = 'Fft'
         ImageIndex = 3
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
       end
       object TabSheet5: TTabSheet
         Caption = 'Histogram'
         ImageIndex = 4
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object ToolBar3: TToolBar
           Left = 0
           Top = 0
@@ -341,7 +368,7 @@ object Form1: TForm1
       Left = 239
       Top = 80
       Width = 120
-      Height = 22
+      Height = 21
       BevelEdges = []
       BevelInner = bvNone
       BevelOuter = bvNone
@@ -362,7 +389,7 @@ object Form1: TForm1
   object ToolBar2: TToolBar
     Left = 0
     Top = 0
-    Width = 741
+    Width = 1226
     Height = 34
     AutoSize = True
     ButtonHeight = 30
@@ -601,7 +628,7 @@ object Form1: TForm1
   object ToolBar4: TToolBar
     Left = 0
     Top = 34
-    Width = 741
+    Width = 1226
     Height = 38
     ButtonHeight = 38
     ButtonWidth = 171
@@ -664,7 +691,7 @@ object Form1: TForm1
   object Panel1: TPanel
     Left = 0
     Top = 323
-    Width = 741
+    Width = 1226
     Height = 188
     Align = alBottom
     BevelOuter = bvNone
@@ -683,7 +710,7 @@ object Form1: TForm1
     object Chart3: TChart
       Left = 628
       Top = 0
-      Width = 113
+      Width = 598
       Height = 188
       BackImage.Mode = pbmCustom
       BackImage.Data = {
@@ -882,9 +909,34 @@ object Form1: TForm1
   object StatusBar1: TStatusBar
     Left = 0
     Top = 511
-    Width = 741
+    Width = 1226
     Height = 19
     Panels = <>
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 72
+    Width = 250
+    Height = 248
+    Align = alLeft
+    Alignment = taLeftJustify
+    BevelOuter = bvNone
+    TabOrder = 5
+    object Panel3: TPanel
+      Left = 0
+      Top = 0
+      Width = 15
+      Height = 248
+      Cursor = crHandPoint
+      Hint = #1057#1074#1077#1088#1085#1091#1090#1100
+      Align = alLeft
+      BevelOuter = bvNone
+      Caption = '<<'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+      OnClick = Panel3Click
+    end
   end
   object ImageList1: TImageList
     Height = 24
@@ -3098,6 +3150,10 @@ object Form1: TForm1
       object test1: TMenuItem
         Caption = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1087#1088#1086#1077#1082#1090
         OnClick = test1Click
+      end
+      object N117: TMenuItem
+        Caption = #1054#1090#1082#1088#1099#1090#1100' '#1087#1088#1086#1077#1082#1090
+        OnClick = N117Click
       end
     end
     object N23: TMenuItem

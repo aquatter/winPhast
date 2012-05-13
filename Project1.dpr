@@ -49,7 +49,8 @@ uses
   USaveAsForm in 'Source\USaveAsForm.pas' {SaveAsForm},
   UFizo in 'Source\UFizo.pas',
   UPTree in 'Source\Common\UPTree.pas',
-  UProjectData in 'Source\UProjectData.pas';
+  UProjectData in 'Source\UProjectData.pas',
+  Uvt in 'Source\Uvt.pas';
 
 {$R *.res}
 {$R new.res}

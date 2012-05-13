@@ -6,8 +6,10 @@ uses
   Generics.Collections, utype;
 
 type
+  TProjectType = (ptPhaseShift, ptFizo, ptDynamic);
+
   TProjectProp = record
-    type_: (ptPhaseShift, ptFizo, ptDynamic);
+    type_: TProjectType;
     WaveLength: treal;
     w,h: integer;
     file_name, file_path: AnsiString;
