@@ -7,19 +7,27 @@ uses
 
 type
   TProjectType = (ptPhaseShift, ptFizo, ptDynamic);
+  TCalculationList = (calcPhase, calcUnwrap, calcEverythingElse);
 
   TProjectProp = record
     type_: TProjectType;
     WaveLength: treal;
     w,h: integer;
     file_name, file_path: AnsiString;
+    project_name: string;
+    doTilt, doMean, doUnwrap: boolean;
   end;
 
   PRec = ^TRec;
   TRec = class
     img: TList<AnsiString>;
     phase, unwrap: AnsiString;
+    phase_calculated: boolean;
+    unwrap_calculated: boolean;
+    what_to_calc: array of TCalculationList;
 
+    procedure Add2Calculation(item: TCalculationList);
+    procedure ClearCalculation;
     constructor Create;
     destructor Destroy; override;
   end;
@@ -47,6 +55,7 @@ type
     function Add(): TSeq;
     function Get(i: integer): TSeq;
     function Count(): integer;
+    procedure ClearCalculation;
     procedure Clear;
     constructor Create;
     destructor Destroy; override;
@@ -88,6 +97,16 @@ end;
 function TProjectData.Count():integer;
 begin
   Result:= seq_.Count;
+end;
+
+procedure TProjectData.ClearCalculation;
+var i, j: integer;
+begin
+
+  for i:=0 to seq_.Count-1 do
+    for j:=0 to seq_[i].Count-1 do
+      seq_[i].Get(j).ClearCalculation;
+
 end;
 
 { TSeq }
@@ -136,8 +155,22 @@ destructor TRec.Destroy;
 begin
   img.Clear;
   img.Free;
-
+  Finalize(what_to_calc);
   inherited;
+end;
+
+
+procedure TRec.Add2Calculation(item: TCalculationList);
+var n: integer;
+begin
+  n:= Length(what_to_calc);
+  SetLength(what_to_calc, n+1);
+  what_to_calc[n]:= item;
+end;
+
+procedure TRec.ClearCalculation;
+begin
+  Finalize(what_to_calc);
 end;
 
 end.

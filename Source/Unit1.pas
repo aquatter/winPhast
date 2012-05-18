@@ -33,6 +33,7 @@ uses
   end; }
 const
   crMyShittyCursor = 1;
+  WM_STARTEDITING = WM_USER + 778;
 
 type
 
@@ -418,7 +419,7 @@ type
 
 
     procedure ExportToWord;
-
+    procedure WMStartEditing(var Message: TMessage); message WM_STARTEDITING;
   public
     line1, line2, fft, hist, x_hist: TMyInfernalType;
 
@@ -448,8 +449,6 @@ type
     procedure Move2Start;
     procedure SetLazer;
     procedure MoveMirrorCom(pos: word);
-    procedure VtGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-    TextType: TVSTTextType; var CellText: UnicodeString);
   end;
 
   TRunThread = class(TThread)
@@ -2421,7 +2420,34 @@ procedure TForm1.test1Click(Sender: TObject);
  }
  var s: AnsiString;
      pt: pointer;
+     q1, q2: array of integer;
+     s1: string;
+     i: integer;
 begin
+  SetLength(q1, 10);
+
+  s:='';
+  for i:=0 to Length(q1)-1 do
+  begin
+    q1[i]:= i*12;
+//    s:= s + IntToStr(q1[i]) + ' ';
+  end;
+
+  q2:= Copy(q1, 0, length(q1));
+
+  for i:=0 to Length(q1)-1 do
+    q1[i]:= round(q1[i]/2);
+
+  for i:=0 to Length(q2)-1 do
+    s:= s + IntToStr(q2[i]) + ' ';
+
+  ShowMessage(s);
+
+  Finalize(q1);
+  Finalize(q2);
+
+   exit;
+
   {
   pt:= ptree_init;
                        s:='node1.node2';
@@ -2895,15 +2921,12 @@ begin
   end;
 end;
 
-procedure TForm1.VtGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Column: TColumnIndex; TextType: TVSTTextType; var CellText: UnicodeString);
-var d: PVtNodeData;
+procedure TForm1.WMStartEditing(var Message: TMessage);
+var
+  Node: PVirtualNode;
 begin
-
-  d:= PVtNodeData(vt.GetNodeData(Node));
-  if d <> nil then
-    CellText:= 'fuck';
-
+  Node:= Pointer(Message.WParam);
+  vt.EditNode(Node, -1);
 end;
 
 procedure TForm1.WM_WMCapDone(var msg: TMessage);
@@ -5488,7 +5511,10 @@ begin
     exit;
 
   if OpenProject(AnsiString(OpenDialog1.FileName), ProjectData) then
+  begin
+    vt.Clear;
     AddToVt(ProjectData);
+  end;
 
 end;
 

@@ -145,6 +145,7 @@
 			<DCCReference Include="Source\Common\UPTree.pas"/>
 			<DCCReference Include="Source\UProjectData.pas"/>
 			<DCCReference Include="Source\Uvt.pas"/>
+			<DCCReference Include="Source\UTProjectCalculationThread.pas"/>
 			<None Include="Project1.todo"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>

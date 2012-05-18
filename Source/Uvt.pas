@@ -3,33 +3,79 @@ unit Uvt;
 interface
 
 uses
-  VirtualTrees, UProjectData;
+  VirtualTrees, UProjectData, Controls, Classes, Messages, Windows, StdCtrls, Mask;
 
 type
+   TValueType = (
+    vtNone,
+    vtString,
+    vtPickString,
+    vtNumber,
+    vtPickNumber,
+    vtMemo,
+    vtDate,
+    vtBoolean
+  );
+
+  TParamType = (
+    ptNone,
+    ptWaveLength,
+    ptDoTilt,
+    ptDoUnwrap,
+    ptDoMean
+  );
+
+
   PVtNodeData = ^TVtNodeData;
   TVtNodeData = record
     pd: TProjectData;
     num_seq, num_rec, num_img: integer;
     name: string;
-    type_: (ntImage, ntPhase, ntUnwrap, ntSeq, ntRec, ntImage_root);
+    type_: (ntImage, ntPhase, ntUnwrap, ntSeq, ntRec, ntImage_root, ntHeader, ntParam);
+    param_type_: TParamType;
+    ValueType: TValueType;
   end;
 
   TDummyObject = class
     class procedure OnVtGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
     TextType: TVSTTextType; var CellText: UnicodeString);
     class procedure OnVtDblClick(Sender: TObject);
+    class procedure OnVtEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
+    class procedure OnVtChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    class procedure OnVtCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
   end;
+
+  TVtEditLink = class(TInterfacedObject, IVTEditLink)
+  private
+    FEdit: TWinControl;
+    FTree: TVirtualStringTree;
+    FNode: PVirtualNode;
+    FColumn: Integer;
+  protected
+    procedure EditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+  public
+    destructor Destroy; override;
+
+    function BeginEdit: Boolean; stdcall;
+    function CancelEdit: Boolean; stdcall;
+    function EndEdit: Boolean; stdcall;
+    function GetBounds: TRect; stdcall;
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
+    procedure ProcessMessage(var Message: TMessage); stdcall;
+    procedure SetBounds(R: TRect); stdcall;
+  end;
+
 
 var
   vt: TVirtualStringTree;
 
 procedure InitVt;
 procedure AddToVt(var pd: TProjectData);
-
+procedure UpdateVt;
 
 implementation
 
-uses Unit1, Forms, Controls, SysUtils, crude, panel1, UPhast2Vars;
+uses Unit1, Forms, SysUtils, crude, panel1, UPhast2Vars, UTProjectCalculationThread;
 
 procedure InitVt;
 var col: TVirtualTreeColumn;
@@ -69,10 +115,13 @@ begin
 
   vt.OnGetText:= TDummyObject.OnVtGetText;
   vt.OnDblClick:= TDummyObject.OnVtDblClick;
+  vt.OnEditing:= TDummyObject.OnVtEditing;
+  vt.OnChange:= TDummyObject.OnVtChange;
+  vt.OnCreateEditor:= TDummyObject.OnVtCreateEditor;
 end;
 
 procedure AddToVt(var pd: TProjectData);
-var t, seq_, rec_, img, img_root, p: PVirtualNode;
+var t, seq_, rec_, img, img_root, p, param_node: PVirtualNode;
     d: PVtNodeData;
     i, j, k: integer;
 begin
@@ -85,6 +134,83 @@ begin
     begin
       d^.name:= string(pd.prop_.file_name);
       d^.pd:= pd;
+      d^.ValueType:= vtString;
+      d^.type_:= ntHeader;
+      d^.param_type_:= ptNone;
+    end;
+
+    param_node:= vt.AddChild(t);
+    if Assigned(param_node) then
+    begin
+      param_node^.States:= param_node^.States + [vsExpanded];
+      d:= vt.GetNodeData(param_node);
+      if Assigned(d) then
+        d^.name:= 'Параметры';
+
+      p:= vt.AddChild(param_node);
+      if Assigned(p) then
+      begin
+        d:= vt.GetNodeData(p);
+        if Assigned(d) then
+        begin
+          d^.name:= 'Длина волны: ' + FloatToStrF(pd.prop_.WaveLength, ffFixed, 5, 2)+'нм.';
+          d^.param_type_:= ptWaveLength;
+          d^.ValueType:= vtString;
+          d^.type_:= ntParam;
+          d^.pd:= pd;
+        end;
+      end;
+
+      p:= vt.AddChild(param_node);
+      if Assigned(p) then
+      begin
+        d:= vt.GetNodeData(p);
+        if Assigned(d) then
+        begin
+          if pd.prop_.doTilt then
+            d^.name:= 'Вычитать клин: да'
+          else
+            d^.name:= 'Вычитать клин: нет';
+          d^.param_type_:= ptDoTilt;
+          d^.ValueType:= vtBoolean;
+          d^.type_:= ntParam;
+          d^.pd:= pd;
+        end;
+      end;
+
+      p:= vt.AddChild(param_node);
+      if Assigned(p) then
+      begin
+        d:= vt.GetNodeData(p);
+        if Assigned(d) then
+        begin
+          if pd.prop_.doUnwrap then
+            d^.name:= 'Сшивать фазу: да'
+          else
+            d^.name:= 'Сшивать фазу: нет';
+          d^.param_type_:= ptDoUnwrap;
+          d^.ValueType:= vtBoolean;
+          d^.type_:= ntParam;
+          d^.pd:= pd;
+        end;
+      end;
+
+      p:= vt.AddChild(param_node);
+      if Assigned(p) then
+      begin
+        d:= vt.GetNodeData(p);
+        if Assigned(d) then
+        begin
+          if pd.prop_.doMean then
+            d^.name:= 'Усреднять результат в серии: да'
+          else
+            d^.name:= 'Усреднять результат в серии: нет';
+          d^.param_type_:= ptDoMean;
+          d^.ValueType:= vtBoolean;
+          d^.type_:= ntParam;
+          d^.pd:= pd;
+        end;
+      end;
     end;
 
     for i:=0 to pd.Count-1 do
@@ -101,6 +227,7 @@ begin
           d^.type_:= ntSeq;
           d^.num_seq:= i;
           d^.pd:= pd;
+          d^.ValueType:= vtNone;
         end;
 
         for j:=0 to pd.Get(i).Count-1 do
@@ -119,6 +246,7 @@ begin
               d^.num_seq:= i;
               d^.num_rec:= j;
               d^.pd:= pd;
+              d^.ValueType:= vtNone;
             end;
 
             img_root:= vt.AddChild(rec_);
@@ -135,6 +263,7 @@ begin
                 d^.num_seq:= i;
                 d^.num_rec:= j;
                 d^.pd:= pd;
+                d^.ValueType:= vtNone;
               end;
 
               for k:=0 to pd.Get(i).Get(j).img.Count-1 do
@@ -153,6 +282,7 @@ begin
                     d^.num_rec:= j;
                     d^.num_img:= k;
                     d^.pd:= pd;
+                    d^.ValueType:= vtNone;
                   end;
                 end;
               end;
@@ -170,6 +300,7 @@ begin
                 d^.num_seq:= i;
                 d^.num_rec:= j;
                 d^.pd:= pd;
+                d^.ValueType:= vtNone;
               end;
             end;
 
@@ -185,6 +316,7 @@ begin
                 d^.num_seq:= i;
                 d^.num_rec:= j;
                 d^.pd:= pd;
+                d^.ValueType:= vtNone;
               end;
             end;
           end;
@@ -195,6 +327,25 @@ begin
 end;
 
 { TDummyObject }
+
+class procedure TDummyObject.OnVtEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
+var p: PVtNodeData;
+begin
+  p:= Sender.GetNodeData(Node);
+  if Assigned(p) then
+    Allowed:= (p^.ValueType <> vtNone);
+end;
+
+class procedure TDummyObject.OnVtChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+begin
+  if Assigned(Node) then
+    PostMessage(Form1.Handle, WM_STARTEDITING, Integer(Node), 0);
+end;
+
+class procedure TDummyObject.OnVtCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
+begin
+  EditLink:= TVtEditLink.Create;
+end;
 
 class procedure TDummyObject.OnVtDblClick(Sender: TObject);
 var p: PVirtualNode;
@@ -217,6 +368,21 @@ begin
                    end;
                  end;
 
+        ntPhase: begin
+                   s:= string(d^.pd.prop_.file_path + d^.name);
+                   if FileExists(s) then
+                   begin
+                     phase._type:= varDouble;
+                     LoadBin(phase, s);
+                     pnl.DrawImage(phase, phase);
+                   end
+                   else
+                   begin
+                     d^.pd.ClearCalculation;
+                     d^.pd.Get(d^.num_seq).Get(d^.num_rec).Add2Calculation(calcPhase);
+                     StartCalculationThread(d^.pd);
+                   end;
+                 end;
       end;
 
     end;
@@ -233,6 +399,267 @@ begin
     CellText:= d^.name;
 
 
+end;
+
+procedure UpdateVt;
+begin
+  vt.Clear;
+  AddToVt(ProjectData);
+end;
+
+
+destructor TVtEditLink.Destroy;
+begin
+  FEdit.Free;
+  inherited;
+end;
+
+
+procedure TVtEditLink.EditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  CanAdvance: Boolean;
+begin
+  CanAdvance := true;
+
+  case Key of
+    VK_ESCAPE:
+      if CanAdvance then
+      begin
+        FTree.CancelEditNode;
+        Key := 0;
+      end;
+    VK_RETURN:
+      if CanAdvance then
+      begin
+        FTree.EndEditNode;
+        Key := 0;
+      end;
+
+    VK_UP,
+    VK_DOWN:
+      begin
+        // Consider special cases before finishing edit mode.
+        CanAdvance := Shift = [];
+        if FEdit is TComboBox then
+          CanAdvance := CanAdvance and not TComboBox(FEdit).DroppedDown;
+
+        if CanAdvance then
+        begin
+          // Forward the keypress to the tree. It will asynchronously change the focused node.
+          PostMessage(FTree.Handle, WM_KEYDOWN, Key, 0);
+          Key := 0;
+        end;
+      end;
+  end;
+end;
+
+function TVtEditLink.BeginEdit: Boolean;
+begin
+  Result:= True;
+  FEdit.Show;
+  FEdit.SetFocus;
+end;
+
+function TVtEditLink.CancelEdit: Boolean;
+begin
+  Result:= True;
+  FEdit.Hide;
+end;
+
+function TVtEditLink.EndEdit: Boolean;
+var
+  Data: PVtNodeData;
+  Buffer: array[0..1024] of Char;
+  s: UnicodeString;
+  b: boolean;
+begin
+  Result := True;
+  Data := FTree.GetNodeData(FNode);
+  if FEdit is TComboBox then
+    s:= TComboBox(FEdit).Text
+  else
+  begin
+    GetWindowText(FEdit.Handle, Buffer, 1024);
+    s:= Buffer;
+  end;
+
+  case Data^.type_ of
+    ntHeader: begin
+                Data^.pd.prop_.project_name:= s;
+                Data^.name:= s + '.winPhast';
+             end;
+    ntParam: begin
+
+               b:= false;
+               if Data^.ValueType = vtBoolean then
+                 b:= (FEdit as TComboBox).ItemIndex = 0;
+
+               case Data^.param_type_ of
+                 ptWaveLength: begin
+                                 Data^.pd.prop_.WaveLength:= CheckString(s);
+                                 Data^.name:= 'Длина волны: ' + FloatToStrF(Data^.pd.prop_.WaveLength, ffFixed, 5, 2);
+                               end;
+                 ptDoTilt: begin
+                             Data^.pd.prop_.doTilt:= b;
+                             Data^.name:= 'Вычитать клин: '+ s;
+                           end;
+                 ptDoMean: begin
+                             Data^.pd.prop_.doTilt:= b;
+                             Data^.name:= 'Усреднять результат в серии: '+ s;
+                           end;
+
+                 ptDoUnwrap: begin
+                             Data^.pd.prop_.doTilt:= b;
+                             Data^.name:= 'Сшивать фазу: '+ s;
+                           end;
+               end;
+             end;
+  end;
+
+
+  FTree.InvalidateNode(FNode);
+  {if S <> Data^.name then
+  begin
+    Data.Value := S;
+    Data.Changed := True;
+    FTree.InvalidateNode(FNode);
+  end;
+   }
+  FEdit.Hide;
+  FTree.SetFocus;
+end;
+
+function TVtEditLink.GetBounds: TRect;
+begin
+  Result:= FEdit.BoundsRect;
+end;
+
+function TVtEditLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean;
+var
+  Data: PVtNodeData;
+  b: boolean;
+begin
+  Result := True;
+  FTree := Tree as TVirtualStringTree;
+  FNode := Node;
+  FColumn := Column;
+
+  // determine what edit type actually is needed
+  FEdit.Free;
+  FEdit := nil;
+  Data := FTree.GetNodeData(Node);
+  case Data.ValueType of
+    vtString:
+      begin
+        FEdit := TEdit.Create(nil);
+        with FEdit as TEdit do
+        begin
+          Visible := False;
+          Parent := Tree;
+          if Data^.type_ = ntHeader then
+            Text:= Data^.pd.prop_.project_name;
+          if Data^.param_type_= ptWaveLength  then
+            Text:= FloatToStrF(Data^.pd.prop_.WaveLength, ffFixed, 5, 2);
+
+          OnKeyDown := EditKeyDown;
+        end;
+      end;
+    vtPickString:
+      begin
+        FEdit := TComboBox.Create(nil);
+        with FEdit as TComboBox do
+        begin
+          Visible := False;
+          Parent := Tree;
+          Text := Data^.name;
+          Items.Add(Text);
+          Items.Add('Standard');
+          Items.Add('Additional');
+          Items.Add('Win32');
+          OnKeyDown := EditKeyDown;
+        end;
+      end;
+    vtBoolean: begin
+                 FEdit:= TComboBox.Create(nil);
+                 with FEdit as TComboBox do
+                 begin
+                   Visible:= False;
+                   Parent:= Tree;
+                   b:= false;
+                   Style:= csDropDownList;
+
+                   case  Data^.param_type_ of
+                      ptDoTilt: b:= Data^.pd.prop_.doTilt;
+                      ptDoUnwrap: b:= Data^.pd.prop_.doUnwrap;
+                      ptDoMean: b:= Data^.pd.prop_.doMean;
+                   end;
+
+                   Items.Add('да');
+                   Items.Add('нет');
+
+                   if b then
+                     ItemIndex:= 0
+                   else
+                     ItemIndex:= 1;
+
+                   OnKeyDown := EditKeyDown;
+                 end;
+               end;
+    vtNumber:
+      begin
+        FEdit := TMaskEdit.Create(nil);
+        with FEdit as TMaskEdit do
+        begin
+          Visible := False;
+          Parent := Tree;
+          EditMask := '9999.99';
+          Text := Data^.name;
+          OnKeyDown := EditKeyDown;
+        end;
+      end;
+    vtPickNumber:
+      begin
+        FEdit := TComboBox.Create(nil);
+        with FEdit as TComboBox do
+        begin
+          Visible := False;
+          Parent := Tree;
+          Text := Data^.name;
+          OnKeyDown := EditKeyDown;
+        end;
+      end;
+    vtMemo:
+      begin
+        FEdit := TComboBox.Create(nil);
+        // In reality this should be a drop down memo but this requires
+        // a special control.
+        with FEdit as TComboBox do
+        begin
+          Visible := False;
+          Parent := Tree;
+          Text := Data^.name;
+          Items.Add(Data^.name);
+          OnKeyDown := EditKeyDown;
+        end;
+      end;
+  else
+    Result := False;
+  end;
+end;
+
+procedure TVtEditLink.ProcessMessage(var Message: TMessage);
+begin
+  FEdit.WindowProc(Message);
+end;
+
+procedure TVtEditLink.SetBounds(R: TRect);
+var
+  Dummy: Integer;
+begin
+  // Since we don't want to activate grid extensions in the tree (this would influence how the selection is drawn)
+  // we have to set the edit's width explicitly to the width of the column.
+  FTree.Header.Columns.GetColumnBounds(FColumn, Dummy, R.Right);
+  FEdit.BoundsRect:= R;
 end;
 
 end.

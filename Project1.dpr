@@ -50,7 +50,8 @@ uses
   UFizo in 'Source\UFizo.pas',
   UPTree in 'Source\Common\UPTree.pas',
   UProjectData in 'Source\UProjectData.pas',
-  Uvt in 'Source\Uvt.pas';
+  Uvt in 'Source\Uvt.pas',
+  UTProjectCalculationThread in 'Source\UTProjectCalculationThread.pas';
 
 {$R *.res}
 {$R new.res}

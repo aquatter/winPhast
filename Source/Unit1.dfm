@@ -3,7 +3,7 @@ object Form1: TForm1
   Top = 100
   Caption = 'winPhast'
   ClientHeight = 530
-  ClientWidth = 1226
+  ClientWidth = 1344
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -22,7 +22,7 @@ object Form1: TForm1
   object Splitter2: TSplitter
     Left = 0
     Top = 320
-    Width = 1226
+    Width = 1344
     Height = 3
     Cursor = crVSplit
     Align = alBottom
@@ -236,10 +236,6 @@ object Form1: TForm1
       object TabSheet2: TTabSheet
         Caption = 'Calibration'
         ImageIndex = 1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object ToolBar7: TToolBar
           Left = 0
           Top = 0
@@ -292,26 +288,14 @@ object Form1: TForm1
       object TabSheet3: TTabSheet
         Caption = 'Dynamic'
         ImageIndex = 2
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
       end
       object TabSheet4: TTabSheet
         Caption = 'Fft'
         ImageIndex = 3
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
       end
       object TabSheet5: TTabSheet
         Caption = 'Histogram'
         ImageIndex = 4
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object ToolBar3: TToolBar
           Left = 0
           Top = 0
@@ -389,7 +373,7 @@ object Form1: TForm1
   object ToolBar2: TToolBar
     Left = 0
     Top = 0
-    Width = 1226
+    Width = 1344
     Height = 34
     AutoSize = True
     ButtonHeight = 30
@@ -628,7 +612,7 @@ object Form1: TForm1
   object ToolBar4: TToolBar
     Left = 0
     Top = 34
-    Width = 1226
+    Width = 1344
     Height = 38
     ButtonHeight = 38
     ButtonWidth = 171
@@ -691,7 +675,7 @@ object Form1: TForm1
   object Panel1: TPanel
     Left = 0
     Top = 323
-    Width = 1226
+    Width = 1344
     Height = 188
     Align = alBottom
     BevelOuter = bvNone
@@ -710,7 +694,7 @@ object Form1: TForm1
     object Chart3: TChart
       Left = 628
       Top = 0
-      Width = 598
+      Width = 716
       Height = 188
       BackImage.Mode = pbmCustom
       BackImage.Data = {
@@ -909,7 +893,7 @@ object Form1: TForm1
   object StatusBar1: TStatusBar
     Left = 0
     Top = 511
-    Width = 1226
+    Width = 1344
     Height = 19
     Panels = <>
   end

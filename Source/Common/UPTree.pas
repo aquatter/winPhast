@@ -93,6 +93,7 @@ implementation
     pd.prop_.w:= ptree_get_int(pt, 'Project.Properties.Width');
     pd.prop_.h:= ptree_get_int(pt, 'Project.Properties.Height');
     n_seq:= ptree_get_int(pt, 'Project.Num');
+    pd.prop_.project_name:= ChangeFileExt(ExtractFileName(string(name)),'');
 
     for i:=0 to n_seq-1 do
     begin
@@ -113,15 +114,25 @@ implementation
 
           rec_.img.Add(s1);
         end;
+
         s:=AnsiString('Project.Serie_' + IntToStr(i)+'.Measurement_'+IntToStr(j)+'.Phase');
         s1:=ptree_get_string(pt, PAnsiChar(s));
+        rec_.phase_calculated:= true;
         if not FileExists(string(s1)) then
+        begin
           s1:='‘аза: файл не найден';
+          rec_.phase_calculated:= false;
+        end;
         rec_.phase:= s1;
+
+        rec_.unwrap_calculated:= true;
         s:=AnsiString('Project.Serie_' + IntToStr(i)+'.Measurement_'+IntToStr(j)+'.Unwrap');
         s1:=ptree_get_string(pt, PAnsiChar(s));
         if not FileExists(string(s1)) then
+        begin
           s1:='—шита€ фаза: файл не найден';
+          rec_.unwrap_calculated:= false;
+        end;
         rec_.unwrap:= s1;
       end;
     end;
