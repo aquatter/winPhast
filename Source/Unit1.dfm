@@ -352,7 +352,7 @@ object Form1: TForm1
       Left = 239
       Top = 80
       Width = 120
-      Height = 22
+      Height = 21
       BevelEdges = []
       BevelInner = bvNone
       BevelOuter = bvNone
@@ -3188,11 +3188,13 @@ object Form1: TForm1
         object N41: TMenuItem
           Caption = #1047#1072#1075#1088#1091#1079#1080#1090#1100
           ImageIndex = 21
+          Visible = False
           OnClick = N41Click
         end
         object N42: TMenuItem
           Caption = #1057#1086#1093#1088#1072#1085#1080#1090#1100
           ImageIndex = 6
+          Visible = False
           OnClick = N42Click
         end
       end
@@ -3243,11 +3245,13 @@ object Form1: TForm1
         object N43: TMenuItem
           Caption = #1047#1072#1075#1088#1091#1079#1080#1090#1100
           ImageIndex = 5
+          Visible = False
           OnClick = N43Click
         end
         object N44: TMenuItem
           Caption = #1057#1086#1093#1088#1072#1085#1080#1090#1100
           ImageIndex = 6
+          Visible = False
           OnClick = N44Click
         end
         object N46: TMenuItem

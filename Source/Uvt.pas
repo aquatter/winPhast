@@ -3,7 +3,7 @@ unit Uvt;
 interface
 
 uses
-  VirtualTrees, UProjectData, Controls, Classes, Messages, Windows, StdCtrls, Mask, Graphics;
+  VirtualTrees, UProjectData, Controls, Classes, Messages, Windows, StdCtrls, Mask, Graphics, panel1, t666;
 
 type
    TValueType = (
@@ -74,11 +74,16 @@ var
 procedure InitVt;
 procedure AddToVt(var pd: TProjectData);
 procedure UpdateVt;
-procedure SaveMaskAndUpdateVt(maskType: TActiveMask);
+procedure SaveMaskAndUpdateVt(pd: TProjectData; var mask: TMyInfernalType; maskType: TActiveMask);
+procedure CheckAndLoadMask(pd: TProjectData; var mask: TMyInfernalType; maskType: TActiveMask);
+procedure AddMask(pd: TProjectData; pnl_: tpanel1; Shape: TDrawMode; mask_: TActiveMask; var p, mask: TMyInfernalType);
+procedure SubstructMask(pd: TProjectData; pnl_: tpanel1; Shape: TDrawMode; mask_: TActiveMask; var p, mask: TMyInfernalType);
+procedure ClearMask(pd: TProjectData; pnl_: tpanel1; mask_: TActiveMask; var p, mask: TMyInfernalType);
+procedure SelectAll(pd: TProjectData; pnl_: tpanel1; mask_: TActiveMask; var p, mask: TMyInfernalType);
 
 implementation
 
-uses Unit1, Forms, SysUtils, crude, panel1, UPhast2Vars, UTProjectCalculationThread;
+uses Unit1, Forms, SysUtils, crude, UPhast2Vars, UTProjectCalculationThread;
 
 procedure InitVt;
 var col: TVirtualTreeColumn;
@@ -456,7 +461,7 @@ begin
                      mask_inner._type:= varByte;
                      LoadBin(mask_inner, s);
 
-                     pnl.DrawImage(mask_inner, mask_inner);
+                     pnl.DrawImage(phase, mask_inner);
                      d^.pd.active:= amMask1;
                    end;
                  end;
@@ -467,7 +472,7 @@ begin
                      mask_inner._type:= varByte;
                      LoadBin(mask_inner, s);
 
-                     pnl.DrawImage(mask_inner, mask_inner);
+                     pnl.DrawImage(phase, mask_inner);
                      d^.pd.active:= amMask2;
                    end;
                  end;
@@ -792,7 +797,7 @@ begin
   FEdit.BoundsRect:= R;
 end;
 
-procedure SaveMaskAndUpdateVt(maskType: TActiveMask);
+procedure SaveMaskAndUpdateVt(pd: TProjectData; var mask: TMyInfernalType; maskType: TActiveMask);
 var s: string;
 begin
   case maskType of
@@ -800,13 +805,165 @@ begin
     amMask2: s:= 'mask2.bin';
   end;
 
-  CreateBin(mask_inner, string(ProjectData.prop_.file_path) + s);
-  ProjectData.mask1:= AnsiString(s);
-  ProjectData.active:= maskType;
-  ProjectData.changed:= true;
+  CreateBin(mask, string(ProjectData.prop_.file_path) + s);
+
+  case maskType of
+    amMask1: pd.mask1:= AnsiString(s);
+    amMask2: pd.mask2:= AnsiString(s);
+  end;
+
+  pd.active:= maskType;
+  pd.changed:= true;
   UpdateVt;
 end;
 
+procedure CheckAndLoadMask(pd: TProjectData; var mask: TMyInfernalType; maskType: TActiveMask);
+var s: string;
+begin
+  case maskType of
+    amMask1: s:= 'mask1.bin';
+    amMask2: s:= 'mask2.bin';
+  end;
 
+  if FileExists(string(pd.prop_.file_path) + s) then
+    LoadBin(mask, string(pd.prop_.file_path) + s)
+  else
+    ZeroMemory(mask.b, pd.prop_.w*pd.prop_.h);
+
+end;
+
+procedure AddMask(pd: TProjectData; pnl_: tpanel1; Shape: TDrawMode; mask_: TActiveMask; var p, mask: TMyInfernalType);
+var i, w, h, cnt: integer;
+    mode: TDrawMode;
+    s: string;
+begin
+
+  if not p.loaded then exit;
+  w:= pd.prop_.w;
+  h:= pd.prop_.h;
+
+  CheckAndLoadMask(pd, mask, mask_);
+
+  pnl_.Contrast_mask:=1;
+
+  cnt:=0;
+  for i:=0 to w*h-1 do
+    if mask.b^[i] = 1 then
+      inc(cnt);
+
+  if cnt = 0 then
+    pnl_.DrawImage(p, p)
+  else
+    pnl_.DrawImage(p, mask);
+
+
+  mode:=pnl_.DrawMode;
+  pnl_.DrawMode:=dmNone;
+  pnl_.DrawMode:=Shape;
+
+
+  Form1.Off(false);
+  pnl_.Cursor:=Unit1.crMyShittyCursor;
+
+  repeat
+    Application.ProcessMessages;
+  until pnl_.DrawMode= dmNone;
+  pnl_.Cursor:=crDefault;
+
+
+  pnl_.GetMask(@p, @(_mask));
+
+  for i:=0 to w*h-1 do
+    if _mask.b^[i]=1 then
+      mask.b^[i]:=1;
+
+  pnl_.DrawMode:=dmNone;
+  pnl_.DrawMode:=mode;
+
+  pnl_.DrawImage(p, mask);
+
+  SaveMaskAndUpdateVt(pd, mask, mask_);
+  form1.off(true);
+end;
+
+procedure SubstructMask(pd: TProjectData; pnl_: tpanel1; Shape: TDrawMode; mask_: TActiveMask; var p, mask: TMyInfernalType);
+var i, w, h, cnt: integer;
+    mode: TDrawMode;
+begin
+  if not p.loaded then exit;
+
+  w:=pd.prop_.w;
+  h:=pd.prop_.h;
+
+  CheckAndLoadMask(pd, mask, mask_);
+
+  cnt:=0;
+  for i:=0 to w*h-1 do
+    if mask.b^[i] = 1 then
+      inc(cnt);
+
+  if cnt = 0 then
+    exit;
+
+  mode:=pnl_.DrawMode;
+  pnl_.DrawMode:=dmNone;
+  pnl_.DrawMode:=Shape;
+  pnl_.Contrast_mask:=1;
+
+  pnl.DrawImage(p, mask);
+  form1.off(false);
+  pnl_.Cursor:= Unit1.crMyShittyCursor;
+
+  repeat
+    Application.ProcessMessages;
+  until pnl.DrawMode= dmNone;
+  pnl_.Cursor:=crDefault;
+
+  pnl_.GetMask(@p, @_mask);
+
+  for i:=0 to w*h-1 do
+    if _mask.b^[i]=1 then
+      mask.b^[i]:=0;
+
+  pnl_.DrawMode:=dmNone;
+  pnl_.DrawMode:=mode;
+
+  pnl_.DrawImage(p, mask);
+  SaveMaskAndUpdateVt(pd, mask, mask_);
+
+  form1.off(true);
+//  CurrentMask:=cmMask1;
+//  UpdateLegendLabels;
+
+end;
+
+procedure ClearMask(pd: TProjectData; pnl_: tpanel1; mask_: TActiveMask; var p, mask: TMyInfernalType);
+begin
+  if not p.loaded then exit;
+  ZeroMemory(mask.b, pd.prop_.w*pd.prop_.h);
+
+//  FillMemory(_mask.b, cfg.cam_w*cfg.cam_h, 1);
+  pnl_.Contrast_mask:=1;
+  pnl_.DrawImage(p, p);
+
+  SaveMaskAndUpdateVt(pd, mask, mask_);
+end;
+
+procedure SelectAll(pd: TProjectData; pnl_: tpanel1; mask_: TActiveMask; var p, mask: TMyInfernalType);
+var i, j, w, h: integer;
+begin
+  if not p.loaded then exit;
+
+  w:= pd.prop_.w;
+  h:= pd.prop_.h;
+
+  for i:=10 to h-9 do
+    for j:=10 to w-9 do
+      mask.b^[i*w+j]:=1;
+
+  SaveMaskAndUpdateVt(pd, mask, mask_);
+
+  pnl_.DrawImage(p, mask);
+end;
 
 end.

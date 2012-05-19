@@ -2442,7 +2442,7 @@ begin
 //  ShowMessage( IntToStr(MessageDlg('Проект не сохранен. Сохранить?', mtConfirmation, mbYesNo, 0)));
 //  exit;
   SaveProject(ProjectData);
-
+  vt.Repaint;
   {
   p:= ptree_init();
   ptree_set_int(p, 'shit.int_value', 10);
@@ -3195,15 +3195,22 @@ begin
 end;
 
 procedure TForm1.N27Click(Sender: TObject);
-var p: PMyInfernalType;
+//var p: PMyInfernalType;
 begin
-  p:=GetCurrentArray;
-  if not p^.loaded then exit;
+//  p:=GetCurrentArray;
+  ClearMask(ProjectData, pnl, amMask1, phase, mask_inner);
+  exit;
 
-  ZeroMemory(mask_inner.b, cfg.cam_w*cfg.cam_h);
+  if not phase.loaded then exit;
+  ZeroMemory(mask_inner.b, ProjectData.prop_.w*ProjectData.prop_.h);
+
+
 //  FillMemory(_mask.b, cfg.cam_w*cfg.cam_h, 1);
   pnl.Contrast_mask:=1;
-  pnl.DrawImage(p^, p^);
+  pnl.DrawImage(phase, phase);
+
+  SaveMaskAndUpdateVt(ProjectData, mask_inner, amMask1);
+
   CurrentMask:=cmMask1;
 //  FillMemory(mask_inner.b, cfg.cam_w*cfg.cam_h, 1);
  { pnl.Contrast_mask:=0.5;
@@ -3241,6 +3248,9 @@ end;
 procedure TForm1.N29Click(Sender: TObject);
 var p: PMyInfernalType;
 begin
+  ClearMask(ProjectData, pnl, amMask2, phase, mask_inner);
+  exit;
+
   p:=GetCurrentArray;
   if not p^.loaded then exit;
 
@@ -4233,6 +4243,9 @@ procedure TForm1.N87Click(Sender: TObject);
 var i, j, h, w: integer;
     p: PMyInfernalType;
 begin
+  SelectAll(ProjectData, pnl, amMask1, phase, mask_inner);
+  exit;
+
   if not phase.loaded then
     exit;
 
@@ -4243,7 +4256,7 @@ begin
     for j:=10 to w-9 do
       mask_inner.b^[i*w+j]:=1;
 
-  SaveMaskAndUpdateVt(amMask1);
+  SaveMaskAndUpdateVt(ProjectData, mask_inner, amMask1);
 
   pnl.DrawImage(phase, mask_inner);
   exit;
@@ -4344,6 +4357,9 @@ var p: PMyInfernalType;
     i, w, h, cnt: integer;
     mode: TDrawMode;
 begin
+  SubstructMask(ProjectData, pnl, dmLine, amMask2, phase, mask_inner);
+  exit;
+
   p:=GetCurrentArray;
   if not p^.loaded then exit;
 
@@ -4882,6 +4898,10 @@ var p: PMyInfernalType;
     i, w, h, cnt: integer;
     mode: TDrawMode;
 begin
+
+  AddMask(ProjectData, pnl, dmCirc, amMask1, phase, mask_inner);
+  exit;
+
 //  p:=GetCurrentArray;
 //  if not p^.loaded then exit;
 
@@ -4893,6 +4913,8 @@ begin
   w:= ProjectData.prop_.w;
   h:= ProjectData.prop_.h;
 
+  CheckAndLoadMask(ProjectData, mask_inner, amMask1);
+
   pnl.Contrast_mask:=1;
 
   cnt:=0;
@@ -4901,9 +4923,9 @@ begin
       inc(cnt);
 
   if cnt = 0 then
-    pnl.DrawImage(p^, p^)
+    pnl.DrawImage(phase, phase)
   else
-    pnl.DrawImage(p^, mask_inner);
+    pnl.DrawImage(phase, mask_inner);
 
 
   mode:=pnl.DrawMode;
@@ -4919,7 +4941,8 @@ begin
   until pnl.DrawMode= dmNone;
   pnl.Cursor:=crDefault;
 
-  pnl.GetMask(p, @(_mask));
+
+  pnl.GetMask(@phase, @(_mask));
 
   for i:=0 to w*h-1 do
     if _mask.b^[i]=1 then
@@ -4928,11 +4951,12 @@ begin
   pnl.DrawMode:=dmNone;
   pnl.DrawMode:=mode;
 
-  pnl.DrawImage(p^, mask_inner);
+  pnl.DrawImage(phase, mask_inner);
 
+  SaveMaskAndUpdateVt(ProjectData, mask_inner, amMask1);
   off(true);
   CurrentMask:=cmMask1;
-  UpdateLegendLabels;
+//  UpdateLegendLabels;
 
 end;
 
@@ -4941,6 +4965,9 @@ var p: PMyInfernalType;
     i, w, h, cnt: integer;
     mode: TDrawMode;
 begin
+  AddMask(ProjectData, pnl, dmRect, amMask1, phase, mask_inner);
+  exit;
+
   p:=GetCurrentArray;
   if not p^.loaded then exit;
 
@@ -4993,6 +5020,9 @@ var p: PMyInfernalType;
     i, w, h, cnt: integer;
     mode: TDrawMode;
 begin
+  AddMask(ProjectData, pnl, dmLine, amMask1, phase, mask_inner);
+  exit;
+
   p:=GetCurrentArray;
   if not p^.loaded then exit;
 
@@ -5045,6 +5075,9 @@ var p: PMyInfernalType;
     i, w, h, cnt: integer;
     mode: TDrawMode;
 begin
+  SubstructMask(ProjectData, pnl, dmCirc, amMask1, phase, mask_inner);
+  exit;
+
   p:=GetCurrentArray;
   if not p^.loaded then exit;
 
@@ -5094,6 +5127,9 @@ var p: PMyInfernalType;
     i, w, h, cnt: integer;
     mode: TDrawMode;
 begin
+  SubstructMask(ProjectData, pnl, dmRect, amMask1, phase, mask_inner);
+  exit;
+
   p:=GetCurrentArray;
   if not p^.loaded then exit;
 
@@ -5146,6 +5182,9 @@ var p: PMyInfernalType;
     i, w, h, cnt: integer;
     mode: TDrawMode;
 begin
+  SubstructMask(ProjectData, pnl, dmLine, amMask1, phase, mask_inner);
+  exit;
+
   p:=GetCurrentArray;
   if not p^.loaded then exit;
 
@@ -5195,6 +5234,9 @@ var p: PMyInfernalType;
     i, w, h, cnt: integer;
     mode: TDrawMode;
 begin
+  AddMask(ProjectData, pnl, dmCirc, amMask2, phase, mask_inner);
+  exit;
+
   p:=GetCurrentArray;
   if not p^.loaded then exit;
 
@@ -5248,6 +5290,9 @@ var p: PMyInfernalType;
     i, w, h, cnt: integer;
     mode: TDrawMode;
 begin
+  AddMask(ProjectData, pnl, dmRect, amMask2, phase, mask_inner);
+  exit;
+
   p:=GetCurrentArray;
   if not p^.loaded then exit;
 
@@ -5318,6 +5363,9 @@ var p: PMyInfernalType;
     i, w, h, cnt: integer;
     mode: TDrawMode;
 begin
+  AddMask(ProjectData, pnl, dmLine, amMask2, phase, mask_inner);
+  exit;
+
   p:=GetCurrentArray;
   if not p^.loaded then exit;
 
@@ -5370,6 +5418,9 @@ var p: PMyInfernalType;
     i, w, h, cnt: integer;
     mode: TDrawMode;
 begin
+  SubstructMask(ProjectData, pnl, dmCirc, amMask2, phase, mask_inner);
+  exit;
+
   p:=GetCurrentArray;
   if not p^.loaded then exit;
 
@@ -5422,6 +5473,9 @@ var p: PMyInfernalType;
     i, w, h, cnt: integer;
     mode: TDrawMode;
 begin
+  SubstructMask(ProjectData, pnl, dmRect, amMask2, phase, mask_inner);
+  exit;
+
   p:=GetCurrentArray;
   if not p^.loaded then exit;
 
@@ -5473,6 +5527,9 @@ procedure TForm1.N115Click(Sender: TObject);
 var i, j, h, w: integer;
     p: PMyInfernalType;
 begin
+  SelectAll(ProjectData, pnl, amMask2, phase, mask_inner);
+  exit;
+
   p:=GetCurrentArray;
   if not p^.loaded then exit;
   w:=cfg.cam_w;
