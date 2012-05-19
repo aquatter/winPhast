@@ -3,7 +3,7 @@ unit Uvt;
 interface
 
 uses
-  VirtualTrees, UProjectData, Controls, Classes, Messages, Windows, StdCtrls, Mask;
+  VirtualTrees, UProjectData, Controls, Classes, Messages, Windows, StdCtrls, Mask, Graphics;
 
 type
    TValueType = (
@@ -22,7 +22,8 @@ type
     ptWaveLength,
     ptDoTilt,
     ptDoUnwrap,
-    ptDoMean
+    ptDoMean,
+    ptDoBase
   );
 
 
@@ -30,8 +31,8 @@ type
   TVtNodeData = record
     pd: TProjectData;
     num_seq, num_rec, num_img: integer;
-    name: string;
-    type_: (ntImage, ntPhase, ntUnwrap, ntSeq, ntRec, ntImage_root, ntHeader, ntParam);
+    name, value: string;
+    type_: (ntImage, ntPhase, ntUnwrap, ntSeq, ntRec, ntImage_root, ntHeader, ntParam, ntMask1, ntMask2);
     param_type_: TParamType;
     ValueType: TValueType;
   end;
@@ -43,6 +44,7 @@ type
     class procedure OnVtEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
     class procedure OnVtChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     class procedure OnVtCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
+    class procedure OnVtPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
   end;
 
   TVtEditLink = class(TInterfacedObject, IVTEditLink)
@@ -72,6 +74,7 @@ var
 procedure InitVt;
 procedure AddToVt(var pd: TProjectData);
 procedure UpdateVt;
+procedure SaveMaskAndUpdateVt(maskType: TActiveMask);
 
 implementation
 
@@ -118,10 +121,12 @@ begin
   vt.OnEditing:= TDummyObject.OnVtEditing;
   vt.OnChange:= TDummyObject.OnVtChange;
   vt.OnCreateEditor:= TDummyObject.OnVtCreateEditor;
+  vt.OnPaintText:= TDummyObject.OnVtPaintText;
+
 end;
 
 procedure AddToVt(var pd: TProjectData);
-var t, seq_, rec_, img, img_root, p, param_node: PVirtualNode;
+var t, seq_, rec_, img, img_root, p, param_node, masks_node: PVirtualNode;
     d: PVtNodeData;
     i, j, k: integer;
 begin
@@ -201,13 +206,72 @@ begin
         d:= vt.GetNodeData(p);
         if Assigned(d) then
         begin
-          if pd.prop_.doMean then
-            d^.name:= 'Усреднять результат в серии: да'
+          if pd.prop_.doBase then
+            d^.name:= 'Вычитать базу: да'
           else
-            d^.name:= 'Усреднять результат в серии: нет';
+            d^.name:= 'Вычитать базу: нет';
+          d^.param_type_:= ptDoBase;
+          d^.ValueType:= vtBoolean;
+          d^.type_:= ntParam;
+          d^.pd:= pd;
+        end;
+      end;
+
+      p:= vt.AddChild(param_node);
+      if Assigned(p) then
+      begin
+        d:= vt.GetNodeData(p);
+        if Assigned(d) then
+        begin
+          if pd.prop_.doMean then
+            d^.name:= 'Усреднять результат: да'
+          else
+            d^.name:= 'Усреднять результат: нет';
           d^.param_type_:= ptDoMean;
           d^.ValueType:= vtBoolean;
           d^.type_:= ntParam;
+          d^.pd:= pd;
+        end;
+      end;
+    end;
+
+    masks_node:= vt.AddChild(t);
+    if Assigned(masks_node) then
+    begin
+      masks_node.States:= masks_node.States + [vsExpanded];
+
+      d:= vt.GetNodeData(masks_node);
+      if Assigned(d) then
+      begin
+        d^.name:= 'Маски';
+        d^.ValueType:= vtNone;
+        d^.pd:= pd;
+      end;
+
+      p:= vt.AddChild(masks_node);
+      if Assigned(p) then
+      begin
+        d:= vt.GetNodeData(p);
+        if Assigned(d) then
+        begin
+          d^.name:= 'Маска 1: ';
+          d^.value:= string(pd.mask1);
+          d^.ValueType:= vtNone;
+          d^.type_:= ntMask1;
+          d^.pd:= pd;
+        end;
+      end;
+
+      p:= vt.AddChild(masks_node);
+      if Assigned(p) then
+      begin
+        d:= vt.GetNodeData(p);
+        if Assigned(d) then
+        begin
+          d^.name:= 'Маска 2: ';
+          d^.value:= string(pd.mask2);
+          d^.ValueType:= vtNone;
+          d^.type_:= ntMask2;
           d^.pd:= pd;
         end;
       end;
@@ -295,7 +359,8 @@ begin
               d:= PVtNodeData(vt.GetNodeData(p));
               if Assigned(d) then
               begin
-                d^.name:= string(pd.Get(i).Get(j).phase);
+                d^.name:= 'Фаза: ';
+                d^.value:= string(pd.Get(i).Get(j).phase);
                 d^.type_:= ntPhase;
                 d^.num_seq:= i;
                 d^.num_rec:= j;
@@ -311,7 +376,8 @@ begin
               d:= PVtNodeData(vt.GetNodeData(p));
               if Assigned(d) then
               begin
-                d^.name:= string(pd.Get(i).Get(j).unwrap);
+                d^.name:= 'Сшитая фаза: ';
+                d^.value:= string(pd.Get(i).Get(j).unwrap);
                 d^.type_:= ntUnwrap;
                 d^.num_seq:= i;
                 d^.num_rec:= j;
@@ -363,13 +429,13 @@ begin
                    s:= string(d^.pd.prop_.file_path + d^.name);
                    if FileExists(s) then
                    begin
-                     LoadBmp(int, s, varByte);
-                     pnl.DrawImage(int, int);
+                     LoadBmp(phase, s, varDouble);
+                     pnl.DrawImage(phase, phase);
                    end;
                  end;
 
         ntPhase: begin
-                   s:= string(d^.pd.prop_.file_path + d^.name);
+                   s:= string(d^.pd.prop_.file_path + d^.pd.Get(d^.num_seq).Get(d^.num_seq).phase);
                    if FileExists(s) then
                    begin
                      phase._type:= varDouble;
@@ -381,6 +447,28 @@ begin
                      d^.pd.ClearCalculation;
                      d^.pd.Get(d^.num_seq).Get(d^.num_rec).Add2Calculation(calcPhase);
                      StartCalculationThread(d^.pd);
+                   end;
+                 end;
+        ntMask1: begin
+                   s:= string(d^.pd.prop_.file_path + d^.pd.mask1);
+                   if FileExists(s) then
+                   begin
+                     mask_inner._type:= varByte;
+                     LoadBin(mask_inner, s);
+
+                     pnl.DrawImage(mask_inner, mask_inner);
+                     d^.pd.active:= amMask1;
+                   end;
+                 end;
+        ntMask2: begin
+                   s:= string(d^.pd.prop_.file_path + d^.pd.mask2);
+                   if FileExists(s) then
+                   begin
+                     mask_inner._type:= varByte;
+                     LoadBin(mask_inner, s);
+
+                     pnl.DrawImage(mask_inner, mask_inner);
+                     d^.pd.active:= amMask2;
                    end;
                  end;
       end;
@@ -395,11 +483,38 @@ class procedure TDummyObject.OnVtGetText(Sender: TBaseVirtualTree;
 var d: PVtNodeData;
 begin
   d:= PVtNodeData(Sender.GetNodeData(Node));
-  if d <> nil then
-    CellText:= d^.name;
+  if Assigned(d) then
+  begin
+    CellText:= d^.name + d^.value;
+    if d^.type_ =  ntHeader then
+      if d^.pd.changed then
+        CellText:= CellText + '*';
+
+  end;
 
 
 end;
+
+class procedure TDummyObject.OnVtPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
+var d: PVtNodeData;
+begin
+  d:= Sender.GetNodeData(Node);
+  if Assigned(d) then
+  begin
+    if d^.type_ = ntMask1 then
+      if d^.pd.active = amMask1 then
+        TargetCanvas.Font.Style:= [fsBold]
+      else
+        TargetCanvas.Font.Style:= [];
+
+    if d^.type_ = ntMask2 then
+      if d^.pd.active = amMask2 then
+        TargetCanvas.Font.Style:= [fsBold]
+      else
+        TargetCanvas.Font.Style:= [];
+  end;
+end;
+
 
 procedure UpdateVt;
 begin
@@ -471,7 +586,8 @@ var
   Data: PVtNodeData;
   Buffer: array[0..1024] of Char;
   s: UnicodeString;
-  b: boolean;
+  b, changed: boolean;
+  new_wl: double;
 begin
   Result := True;
   Data := FTree.GetNodeData(FNode);
@@ -483,8 +599,11 @@ begin
     s:= Buffer;
   end;
 
+  changed:= false;
+
   case Data^.type_ of
     ntHeader: begin
+                changed:= Data^.pd.prop_.project_name <> string(s);
                 Data^.pd.prop_.project_name:= s;
                 Data^.name:= s + '.winPhast';
              end;
@@ -496,27 +615,37 @@ begin
 
                case Data^.param_type_ of
                  ptWaveLength: begin
-                                 Data^.pd.prop_.WaveLength:= CheckString(s);
+                                 new_wl:= CheckString(s);
+                                 changed:= Data^.pd.prop_.WaveLength <> new_wl;
+                                 Data^.pd.prop_.WaveLength:= new_wl;
                                  Data^.name:= 'Длина волны: ' + FloatToStrF(Data^.pd.prop_.WaveLength, ffFixed, 5, 2);
                                end;
                  ptDoTilt: begin
+                             changed:= Data^.pd.prop_.doTilt <> b;
                              Data^.pd.prop_.doTilt:= b;
                              Data^.name:= 'Вычитать клин: '+ s;
                            end;
                  ptDoMean: begin
-                             Data^.pd.prop_.doTilt:= b;
+                             changed:= Data^.pd.prop_.doMean <> b;
+                             Data^.pd.prop_.doMean:= b;
                              Data^.name:= 'Усреднять результат в серии: '+ s;
                            end;
 
                  ptDoUnwrap: begin
-                             Data^.pd.prop_.doTilt:= b;
-                             Data^.name:= 'Сшивать фазу: '+ s;
+                               changed:= Data^.pd.prop_.doUnwrap <> b;
+                               Data^.pd.prop_.doUnwrap:= b;
+                               Data^.name:= 'Сшивать фазу: '+ s;
+                             end;
+                 ptDoBase: begin
+                             changed:= Data^.pd.prop_.doBase <> b;
+                             Data^.pd.prop_.doBase:= b;
+                             Data^.name:= 'Вычитать базу: '+ s;
                            end;
                end;
              end;
   end;
 
-
+  Data^.pd.changed:= changed;
   FTree.InvalidateNode(FNode);
   {if S <> Data^.name then
   begin
@@ -592,6 +721,7 @@ begin
                       ptDoTilt: b:= Data^.pd.prop_.doTilt;
                       ptDoUnwrap: b:= Data^.pd.prop_.doUnwrap;
                       ptDoMean: b:= Data^.pd.prop_.doMean;
+                      ptDoBase: b:= Data^.pd.prop_.doBase;
                    end;
 
                    Items.Add('да');
@@ -661,5 +791,22 @@ begin
   FTree.Header.Columns.GetColumnBounds(FColumn, Dummy, R.Right);
   FEdit.BoundsRect:= R;
 end;
+
+procedure SaveMaskAndUpdateVt(maskType: TActiveMask);
+var s: string;
+begin
+  case maskType of
+    amMask1: s:= 'mask1.bin';
+    amMask2: s:= 'mask2.bin';
+  end;
+
+  CreateBin(mask_inner, string(ProjectData.prop_.file_path) + s);
+  ProjectData.mask1:= AnsiString(s);
+  ProjectData.active:= maskType;
+  ProjectData.changed:= true;
+  UpdateVt;
+end;
+
+
 
 end.

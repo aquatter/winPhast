@@ -161,8 +161,8 @@ begin
     end;
 
   finally
-    s:= pd_.prop_.file_path + pd_.prop_.file_name;
-    SaveProject(s, pd_);
+//    s:= pd_.prop_.file_path + pd_.prop_.file_name;
+    SaveProject(pd_);
 
     Synchronize(
     procedure

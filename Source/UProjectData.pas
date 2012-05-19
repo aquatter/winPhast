@@ -8,6 +8,7 @@ uses
 type
   TProjectType = (ptPhaseShift, ptFizo, ptDynamic);
   TCalculationList = (calcPhase, calcUnwrap, calcEverythingElse);
+  TActiveMask = (amNone, amMask1, amMask2);
 
   TProjectProp = record
     type_: TProjectType;
@@ -15,7 +16,7 @@ type
     w,h: integer;
     file_name, file_path: AnsiString;
     project_name: string;
-    doTilt, doMean, doUnwrap: boolean;
+    doTilt, doMean, doUnwrap, doBase, doNm: boolean;
   end;
 
   PRec = ^TRec;
@@ -50,7 +51,10 @@ type
 
     prop_: TProjectProp;
     seq_: TObjectList<TSeq>;
+    changed: boolean;
 
+    mask1, mask2: AnsiString;
+    active: TActiveMask;
 
     function Add(): TSeq;
     function Get(i: integer): TSeq;

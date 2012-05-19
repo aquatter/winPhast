@@ -57,7 +57,7 @@ object Form1: TForm1
       Left = 11
       Top = 2
       Width = 215
-      Height = 30
+      Height = 22
       AutoSize = True
       ButtonHeight = 30
       ButtonWidth = 31
@@ -99,7 +99,7 @@ object Form1: TForm1
       Left = 239
       Top = 2
       Width = 71
-      Height = 30
+      Height = 22
       AutoSize = True
       ButtonHeight = 30
       ButtonWidth = 31
@@ -131,7 +131,7 @@ object Form1: TForm1
       Left = 323
       Top = 2
       Width = 102
-      Height = 30
+      Height = 22
       AutoSize = True
       ButtonHeight = 30
       ButtonWidth = 31
@@ -352,7 +352,7 @@ object Form1: TForm1
       Left = 239
       Top = 80
       Width = 120
-      Height = 21
+      Height = 22
       BevelEdges = []
       BevelInner = bvNone
       BevelOuter = bvNone

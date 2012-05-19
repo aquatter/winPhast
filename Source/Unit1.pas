@@ -584,7 +584,7 @@ begin
   CommPortDriver1:= TCommPortDriver.Create(self);
   CommPortDriver1.ComPortSpeed:=br19200;
   CommPortDriver1.ComPortStopBits:=sb1BITS;
-  CommPortDriver1.ComPortParity:=ptNONE;
+  CommPortDriver1.ComPortParity:=TComPortParity.ptNONE;
   CommPortDriver1.ComPortDataBits:=db8BITS;
 
   if cfg.ComMode then
@@ -710,7 +710,9 @@ begin
                s:=Form2.ListView2.Items[0].SubItems[1];
                ProjectData.prop_.WaveLength:= cfg.lambda;
                ProjectData.prop_.file_path:= ExtractFilePath(s);
-               ProjectData.prop_.file_name:='New Project';
+               ProjectData.prop_.project_name:='New Project';
+               ProjectData.prop_.file_name:='New Project.winPhast';
+               ProjectData.changed:= true;
                rec_:=ProjectData.Add.Add;
 
                if form2.ListView2.Items.Count = 0 then exit;
@@ -730,7 +732,7 @@ begin
   ProjectData.prop_.w:=w;
   ProjectData.prop_.h:=h;
 
-  SaveProject(ProjectData.prop_.file_path +ProjectData.prop_.file_name+'.winPhast', ProjectData);
+  SaveProject(ProjectData);
 
   cfg.cam_w:=w;
   cfg.cam_h:=h;
@@ -2176,7 +2178,7 @@ begin
     VideoCaptureMode:=cmVideo;
     VideoCaptureSeqThread:=TVideoCaptureSeqThread.Create(true);
     VideoCaptureSeqThread.FreeOnTerminate:=true;
-    VideoCaptureSeqThread.Resume;
+    VideoCaptureSeqThread.Start;
 
     if cfg.Com_phase_shift then
     begin
@@ -2412,43 +2414,13 @@ begin
 end;
 
 procedure TForm1.test1Click(Sender: TObject);
-{var d : double;
-    h: HINST;
-    p: pointer;
-    str: string;
-    p1: array[0..15] of char;
- }
- var s: AnsiString;
+{ var s: AnsiString;
      pt: pointer;
      q1, q2: array of integer;
      s1: string;
-     i: integer;
+     i: integer;}
 begin
-  SetLength(q1, 10);
-
-  s:='';
-  for i:=0 to Length(q1)-1 do
-  begin
-    q1[i]:= i*12;
-//    s:= s + IntToStr(q1[i]) + ' ';
-  end;
-
-  q2:= Copy(q1, 0, length(q1));
-
-  for i:=0 to Length(q1)-1 do
-    q1[i]:= round(q1[i]/2);
-
-  for i:=0 to Length(q2)-1 do
-    s:= s + IntToStr(q2[i]) + ' ';
-
-  ShowMessage(s);
-
-  Finalize(q1);
-  Finalize(q2);
-
-   exit;
-
-  {
+    {
   pt:= ptree_init;
                        s:='node1.node2';
   ptree_set_string(pt, @s, 'Some Text');
@@ -2457,16 +2429,19 @@ begin
   ptree_shutdown(pt);
   exit;
   }
-  SaveDialog1.Filter:='*.winPhast| winPhast project files';
-  SaveDialog1.FileName:= ProjectData.prop_.file_name;
+//  SaveDialog1.Filter:='*.winPhast| winPhast project files';
+//  SaveDialog1.FileName:= ProjectData.prop_.file_name;
 
-  if not SaveDialog1.Execute() then
-    exit;
+//  if not SaveDialog1.Execute() then
+//    exit;
 
-  s:= SaveDialog1.FileName;
-  ChangeFileExt(s, '.winPhast');
+//  s:= SaveDialog1.FileName;
+//  ChangeFileExt(s, '.winPhast');
 
-  SaveProject(s, ProjectData);
+
+//  ShowMessage( IntToStr(MessageDlg('Проект не сохранен. Сохранить?', mtConfirmation, mbYesNo, 0)));
+//  exit;
+  SaveProject(ProjectData);
 
   {
   p:= ptree_init();
@@ -3093,6 +3068,12 @@ end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+  if ProjectData.changed then
+  begin
+    if MessageDlg('Проект не сохранен. Сохранить?', mtConfirmation, mbYesNo, 0) = mrYes then
+      SaveProject(ProjectData);
+  end;
+
   with cfg do
   begin
     x_left:=form3.Left;
@@ -4252,6 +4233,22 @@ procedure TForm1.N87Click(Sender: TObject);
 var i, j, h, w: integer;
     p: PMyInfernalType;
 begin
+  if not phase.loaded then
+    exit;
+
+  w:= ProjectData.prop_.w;
+  h:= ProjectData.prop_.h;
+
+  for i:=10 to h-9 do
+    for j:=10 to w-9 do
+      mask_inner.b^[i*w+j]:=1;
+
+  SaveMaskAndUpdateVt(amMask1);
+
+  pnl.DrawImage(phase, mask_inner);
+  exit;
+
+
   p:=GetCurrentArray;
   if not p^.loaded then exit;
   w:=cfg.cam_w;
@@ -4876,7 +4873,7 @@ begin
 
   InitComThread:=TInitComThread.Create(true);
   InitComThread.FreeOnTerminate:=true;
-  InitComThread.Resume;
+  InitComThread.Start;
   InitComThreadForm.Show;
 end;
 
@@ -4885,11 +4882,17 @@ var p: PMyInfernalType;
     i, w, h, cnt: integer;
     mode: TDrawMode;
 begin
-  p:=GetCurrentArray;
-  if not p^.loaded then exit;
+//  p:=GetCurrentArray;
+//  if not p^.loaded then exit;
 
-  w:=p^.w;
-  h:=p^.h;
+
+//  w:=p^.w;
+//  h:=p^.h;
+
+  if not phase.loaded then exit;
+  w:= ProjectData.prop_.w;
+  h:= ProjectData.prop_.h;
+
   pnl.Contrast_mask:=1;
 
   cnt:=0;
