@@ -65,12 +65,12 @@ implementation
       s:=AnsiString( 'Project.Serie_' + IntToStr(i)+'.Num' );
       ptree_set_int(pt, PAnsiChar(s), pd.Get(i).Count);
 
-      for j:=0 to pd.Get(i).Count-1 do
+      for j:=0 to pd[i].Count-1 do
       begin
         s:=AnsiString( 'Project.Serie_' + IntToStr(i)+'.Measurement_'+IntToStr(j)+'.Num' );
         ptree_set_int(pt, PAnsiChar(s), pd.Get(i).Get(j).img.Count);
 
-        for k:=0 to pd.Get(i).Get(j).img.Count-1 do
+        for k:=0 to pd[i][j].img.Count-1 do
         begin
           s:=AnsiString('Project.Serie_' + IntToStr(i)+'.Measurement_'+IntToStr(j)+'.Image_'+IntToStr(k));
           s1:= pd.Get(i).Get(j).img[k];
@@ -85,12 +85,25 @@ implementation
           s1:= 'None';
         ptree_set_string(pt, PAnsiChar(s), PAnsiChar(s1));
 
+        s:=AnsiString('Project.Serie_' + IntToStr(i)+'.Measurement_'+IntToStr(j)+'.Amplitude');
+        s1:= pd.Get(i).Get(j).amp;
+        if not FileExists(string(pd.prop_.file_path + s1)) then
+          s1:= 'None';
+        ptree_set_string(pt, PAnsiChar(s), PAnsiChar(s1));
+
         s1:= pd.Get(i).Get(j).unwrap;
         if not FileExists(string(pd.prop_.file_path + s1)) then
           s1:= 'None';
         s:=AnsiString('Project.Serie_' + IntToStr(i)+'.Measurement_'+IntToStr(j)+'.Unwrap');
         ptree_set_string(pt, PAnsiChar(s), PAnsiChar(s1));
       end;
+
+      s:=AnsiString( 'Project.Serie_' + IntToStr(i)+'.mean' );
+      s1:= pd[i].mean_unwrap;
+      if not FileExists(string(pd.prop_.file_path + s1)) then
+        s1:= 'None';
+      ptree_set_string(pt, PAnsiChar(s), PAnsiChar(s1));
+
     end;
 
     if pd.prop_.file_name <> AnsiString(pd.prop_.project_name + '.winPhast') then
@@ -181,6 +194,12 @@ implementation
         end;
         rec_.phase:= s1;
 
+        s:=AnsiString('Project.Serie_' + IntToStr(i)+'.Measurement_'+IntToStr(j)+'.Amplitude');
+        s1:=ptree_get_string(pt, PAnsiChar(s));
+        if not FileExists(string(pd.prop_.file_path + s1)) then
+          s1:='файл не найден';
+        rec_.amp:= s1;
+
         rec_.unwrap_calculated:= true;
         s:=AnsiString('Project.Serie_' + IntToStr(i)+'.Measurement_'+IntToStr(j)+'.Unwrap');
         s1:=ptree_get_string(pt, PAnsiChar(s));
@@ -191,6 +210,15 @@ implementation
         end;
         rec_.unwrap:= s1;
       end;
+
+      s:=AnsiString('Project.Serie_' + IntToStr(i)+'.mean');
+      s1:= ptree_get_string(pt, PAnsiChar(s));
+      if not FileExists(string(pd.prop_.file_path + s1)) then
+      begin
+        s1:= 'файл не найден';
+        seq_.mean_calculated:= false;
+      end;
+      seq_.mean_unwrap:= s1;
     end;
 
     ptree_shutdown(pt);

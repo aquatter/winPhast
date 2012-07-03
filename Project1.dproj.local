@@ -5,5 +5,7 @@
     <Transaction>2012.05.08 21:01:15.671.pas,F:\Files\Delphi Files\winPhast\Unit11.pas=F:\Files\Delphi Files\winPhast\Source\UProjectData.pas</Transaction>
     <Transaction>2012.05.13 00:53:52.078.pas,F:\Files\Delphi Files\winPhast\Unit11.pas=F:\Files\Delphi Files\winPhast\Source\Uvt.pas</Transaction>
     <Transaction>2012.05.16 00:27:17.375.pas,F:\Files\Delphi Files\winPhast\Unit11.pas=F:\Files\Delphi Files\winPhast\Source\UTProjectCalculationThread.pas</Transaction>
+    <Transaction>2012.06.25 18:03:12.721.pas,C:\Files\Delphi Files\winPhast\Unit11.pas=C:\Files\Delphi Files\winPhast\Source\UAutoSavingForm.pas</Transaction>
+    <Transaction>2012.06.25 18:03:12.721.dfm,C:\Files\Delphi Files\winPhast\Unit11.dfm=C:\Files\Delphi Files\winPhast\Source\UAutoSavingForm.dfm</Transaction>
   </Transactions>
 </BorlandProject>

@@ -51,7 +51,8 @@ uses
   UPTree in 'Source\Common\UPTree.pas',
   UProjectData in 'Source\UProjectData.pas',
   Uvt in 'Source\Uvt.pas',
-  UTProjectCalculationThread in 'Source\UTProjectCalculationThread.pas';
+  UTProjectCalculationThread in 'Source\UTProjectCalculationThread.pas',
+  UAutoSavingForm in 'Source\UAutoSavingForm.pas' {AutoSavingForm};
 
 {$R *.res}
 {$R new.res}
@@ -85,5 +86,6 @@ begin
   Application.CreateForm(TTwoWaveLengthDialogForm, TwoWaveLengthDialogForm);
   Application.CreateForm(TTest_Com_Port_Form, Test_Com_Port_Form);
   Application.CreateForm(TSaveAsForm, SaveAsForm);
+  Application.CreateForm(TAutoSavingForm, AutoSavingForm);
   Application.Run;
 end.

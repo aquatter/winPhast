@@ -25,7 +25,8 @@ var
 
 implementation
 
-uses UPhast2Vars, windows, unit10, sysutils, crude, VidCap, utype, unit1;
+uses UPhast2Vars, windows, unit10, sysutils, crude, VidCap, utype, unit1,
+  UProjectData, Uvt, UPTree;
 
 procedure TDirectShowCaptureThread.Draw;
 begin
@@ -42,7 +43,10 @@ begin
   form1.off(true);
   CurrentMatrix:=cmInt;
   from:=fromCamera;
-  form1.InitialiseArrays;
+  SaveProject(ProjectData);
+  UpdateVt;
+
+//  form1.InitialiseArrays;
 end;
 
 procedure TDirectShowCaptureThread.Draw3;
@@ -58,6 +62,8 @@ end;
 procedure TDirectShowCaptureThread.Execute;
 var i, l, j, k, w, h: integer;
     p: PByteArray;
+    rec_: TRec;
+    seq_: TSeq;
 begin
   WaitEvent:=CreateEvent(nil, true, false, nil);
 //  DataReady:=CreateEvent(nil, true, false, nil);
@@ -96,6 +102,9 @@ begin
 
   for l:=0 to num_seq-1 do
   begin
+    seq_:= ProjectData.Add;
+    rec_:= seq_.Add;
+
     if cfg.Fizo then
     begin
       seq:=l+1;
@@ -112,7 +121,8 @@ begin
         for k:=0 to w*h-1 do
           buff_mean.a^[k]:=p^[3*k];
 
-        CreateBmp(buff_mean, false,  cfg.img_path+'\cadr_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp');
+        rec_.img.Add(AnsiString('cadr_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp'));
+        CreateBmp(buff_mean, false,  string(ProjectData.prop_.file_path) + 'cadr_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp');
       end;
 
       WaitForSingleObject(WaitEvent, cfg.SeriesPause);
@@ -123,6 +133,7 @@ begin
 
     for i:=0 to cfg.steps-1 do
     begin
+
       if cancel then break;
       step:=i+1;
       seq:=l+1;
@@ -154,7 +165,8 @@ begin
       for k:=0 to w*h-1 do
         buff_mean.a^[k]:=buff_mean.a^[k]/num_mean;
 
-      CreateBmp(buff_mean, false,  cfg.img_path+'\cadr_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp');
+      rec_.img.Add(AnsiString('cadr_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp'));
+      CreateBmp(buff_mean, false,  string(ProjectData.prop_.file_path) + 'cadr_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp');
       if cancel then break;
     end;
   end;

@@ -718,7 +718,7 @@ begin
                      if (not FirstClick) then
                      begin
                        if ((x-sx) >= 0) and ((y-sy) >= 0) and        { TODO : Загадочно... }
-                       ((x-sx)*scl <= (w_img)) and ((y-sy)*scl <= (h_img)) then
+                       ((x-sx)*scl < (w_img)) and ((y-sy)*scl < (h_img)) then
                        begin
                          Point2.x:=round((x-sx)*scl+sax);
                          Point2.y:=round((y-sy)*scl+say);

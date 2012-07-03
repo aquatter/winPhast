@@ -35,7 +35,7 @@
     Top = 8
     Width = 351
     Height = 514
-    ActivePage = TabSheet4
+    ActivePage = TabSheet3
     MultiLine = True
     RaggedRight = True
     TabOrder = 0
@@ -540,10 +540,6 @@
       Caption = #1051#1091#1085#1082#1072
       ImageIndex = 3
       TabVisible = False
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label19: TLabel
         Left = 13
         Top = 21

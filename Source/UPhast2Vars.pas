@@ -83,6 +83,7 @@ procedure SaveAS; overload;
 procedure SaveAS(name: string); overload;
 function GetCurrentMask: PMyInfernalType;
 procedure SaveData2Txt(var p, m: TMyInfernalType; name: string);
+function CheckMask(var mask: TMyInfernalType; p: PPoint = nil): boolean;
 
 var
   amp, int, phase, unwrap, _mask, final_mask, final_phase, mask_inner, mask_outer: TMyInfernalType;
@@ -380,15 +381,23 @@ begin
 
   w:=p.w;
   h:=p.h;
-  for i:=0 to h-1 do
-  begin
-    for j:=0 to w-1 do
-      if m.b^[i*w+j]=1 then
-        write(f, p.a^[i*w+j]:8:5, ' ')
-      else
-        write(f, 0.0, ' ');
-    writeln(f);
-  end;
+  if p <> m then
+    for i:=0 to h-1 do
+    begin
+      for j:=0 to w-1 do
+        if m.b^[i*w+j]=1 then
+          write(f, p.a^[i*w+j]:8:5, ' ')
+        else
+          write(f, 0.0, ' ');
+     writeln(f);
+    end
+  else
+    for i:=0 to h-1 do
+    begin
+      for j:=0 to w-1 do
+        write(f, p.a^[i*w+j]:8:5, ' ');
+      writeln(f);
+    end;
 
   CloseFile(f);
 end;
@@ -396,12 +405,40 @@ end;
 
 function GetCurrentMask: PMyInfernalType;
 begin
+   CurrentMask:= cmMask1;
    case CurrentMask of
     cmMask1: Result:=@(mask_inner);
     cmMask2: Result:=@(mask_outer);
     cmFinal: Result:=@(final_mask);
   end;
 
+end;
+
+
+function CheckMask(var mask: TMyInfernalType; p: PPoint): boolean;
+var i, j, sum, sumx, sumy: integer;
+
+begin
+  sum:=0;
+  sumx:=0;
+  sumy:=0;
+
+  for i:=0 to mask.h-1 do
+    for j:=0 to mask.w-1 do
+      if mask.b^[i*mask.w+j] = 1 then
+      begin
+        inc(sum);
+        sumx:= sumx + j;
+        sumy:= sumy + i;
+      end;
+
+  if Assigned(p) and (sum <> 0) then
+  begin
+    p^.x:= Round(sumx/sum);
+    p^.y:= Round(sumy/sum);
+  end;
+
+  Result:= sum <> 0;
 end;
 
 end.

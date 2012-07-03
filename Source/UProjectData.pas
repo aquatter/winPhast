@@ -7,8 +7,8 @@ uses
 
 type
   TProjectType = (ptPhaseShift, ptFizo, ptDynamic);
-  TCalculationList = (calcPhase, calcUnwrap, calcEverythingElse);
-  TActiveMask = (amNone, amMask1, amMask2);
+  TCalculationList = (calcPhase, calcUnwrap, calcAmp, calcMean_Unwrap, calcEverythingElse);
+  TActiveMask = (amNone, amMask1, amMask2, amCombined);
 
   TProjectProp = record
     type_: TProjectType;
@@ -22,7 +22,7 @@ type
   PRec = ^TRec;
   TRec = class
     img: TList<AnsiString>;
-    phase, unwrap: AnsiString;
+    phase, unwrap, amp: AnsiString;
     phase_calculated: boolean;
     unwrap_calculated: boolean;
     what_to_calc: array of TCalculationList;
@@ -35,9 +35,13 @@ type
 
   PSeq = ^TSeq;
   TSeq = class
-
+    mean_unwrap: AnsiString;
+    mean_calculated: boolean;
     rec_: TObjectList<TRec>;
+    doMean: boolean;
 
+    function GetItem(Index: Integer): TRec;
+    property Items[Index: Integer]: TRec read GetItem; default;
     function Add(): TRec;
     function Get(i: integer): TRec;
     function Count(): integer;
@@ -48,13 +52,16 @@ type
 
   TProjectData = class
   public
-
     prop_: TProjectProp;
     seq_: TObjectList<TSeq>;
     changed: boolean;
 
+
     mask1, mask2: AnsiString;
     active: TActiveMask;
+
+    function GetItem(Index: Integer): TSeq;
+    property Items[Index: Integer]: TSeq read GetItem; default;
 
     function Add(): TSeq;
     function Get(i: integer): TSeq;
@@ -79,6 +86,11 @@ begin
   seq_.Clear;
   seq_.Free;
   inherited;
+end;
+
+function TProjectData.GetItem(Index: Integer): TSeq;
+begin
+  Result:= seq_[Index];
 end;
 
 function TProjectData.Add(): TSeq;
@@ -163,6 +175,10 @@ begin
   inherited;
 end;
 
+function TSeq.GetItem(Index: Integer): TRec;
+begin
+  Result:= rec_[Index];
+end;
 
 procedure TRec.Add2Calculation(item: TCalculationList);
 var n: integer;

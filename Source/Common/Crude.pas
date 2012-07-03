@@ -900,6 +900,9 @@ var b: TIntArray;
     i, j, k: integer;
     a2, a1, a0: treal;
 begin
+  if order < 5 then
+    exit;
+
   SetLength(b, order-3, order);
   for i:=0 to 3 do
     b[0,i]:=round(Power(-1, i div 2));
@@ -924,7 +927,7 @@ begin
       begin
         a2:=0;
         a1:=0;
-        a0:=0;
+//        a0:=0;
         for k:=0 to order-1 do
         begin
           if odd(k) then

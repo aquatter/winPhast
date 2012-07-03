@@ -18,8 +18,7 @@ uses
      tilt, base, invert, do_seq, do_mean, do_step: boolean;
      x_left, x_top, y_left, y_top, legend_left, legend_top: integer;
      path: string[100];
-     m_shift: integer;
-     amp, expos: UINT;
+     m_shift: integer;ddd
      img_path: string[100];
      capture_left, capture_top: integer;
      port: word;
@@ -256,6 +255,11 @@ type
     Splitter1: TSplitter;
     Panel3: TPanel;
     N117: TMenuItem;
+    PopupMenu1: TPopupMenu;
+    N118: TMenuItem;
+    N119: TMenuItem;
+    N120: TMenuItem;
+    RenameProject1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure ToolButton3Click(Sender: TObject);
     procedure ToolButton4Click(Sender: TObject);
@@ -403,6 +407,10 @@ type
     procedure test1Click(Sender: TObject);
     procedure Panel3Click(Sender: TObject);
     procedure N117Click(Sender: TObject);
+    procedure N119Click(Sender: TObject);
+    procedure N118Click(Sender: TObject);
+    procedure N120Click(Sender: TObject);
+    procedure RenameProject1Click(Sender: TObject);
 
 
 
@@ -470,7 +478,7 @@ uses Unit7, UBaseRunThread, URaznForm, UVideoCaptureSeqThread, URecSeqThread, UP
      URecSeqThreadForm, ULoadSeqForm, ULunkaRunhread, ULoadSeqLunkaForm, ULunkaSeqResultsForm, URaRzRmaxForm,
      UWhat2CalcForm, UReportForm, VidCap, UDirectShowVideoForm, UDirectShowCaptureThread,
      UInitComThread, UTInitComThreadForm, UWatchComThread, USetLazerThread, UTwoWaveLengthDialogForm,
-     UTwoWaveLengthClass, UTwoWaveLengthThread, USaveAsForm, UPTree, UProjectData, Uvt;
+     UTwoWaveLengthClass, UTwoWaveLengthThread, USaveAsForm, UPTree, UProjectData, Uvt, UAutoSavingForm;
 
 {$R *.dfm}
 
@@ -700,13 +708,20 @@ var s: string;
     w, h, i: integer;
     rec_: TRec;
 begin
-  ProjectData.Clear;
 
   case from of
     fromCamera: begin
                  s:=cfg.img_path+'\cadr_i1_s1_c1.bmp';
                 end;
     fromHDD: begin
+               if ProjectData.changed then
+               begin
+                 if MessageDlg('Проект не сохранен. Сохранить?', mtConfirmation, mbYesNo, 0) = mrYes then
+                   SaveProject(ProjectData);
+               end;
+               ProjectData.Clear;
+               vt.Clear;
+
                s:=Form2.ListView2.Items[0].SubItems[1];
                ProjectData.prop_.WaveLength:= cfg.lambda;
                ProjectData.prop_.file_path:= ExtractFilePath(s);
@@ -774,6 +789,8 @@ begin
   Ra:=0;
   Rz:=0;
   Rmax:=0;
+
+  UpdateVt;
 end;
 
 procedure TForm1.ToolButton16Click(Sender: TObject);
@@ -1195,6 +1212,8 @@ end;
 
 function TForm1.GetCurrentArray: PMyInfernalType;
 begin
+  CurrentMatrix:= cmPhase;
+
   case CurrentMatrix of
     cmInt: Result:=@(int);
     cmUnwrap: Result:=@(final_phase);
@@ -2111,11 +2130,40 @@ procedure TForm1.Action2Execute(Sender: TObject);
 var ret, i: cardinal;
 
 begin
+  {
   if cfg.Com_phase_shift and (not ComConnected) then
     exit;
   if cfg.ComMode and (not ComConnected) then
     exit;
+               }
 
+  if ProjectData.changed then
+  begin
+    if MessageDlg('Проект не сохранен. Сохранить?', mtConfirmation, mbYesNo, 0) = mrYes then
+      SaveProject(ProjectData);
+  end;
+
+  ProjectData.Clear;
+  SaveDialog1.Filter:='winPhast project|*.winPhast';
+  SaveDialog1.Title:= 'Введите имя нового проекта';
+  vt.Clear;
+
+  if not SaveDialog1.Execute then
+    exit;
+
+  ProjectData.prop_.file_path:= AnsiString(ExtractFilePath(SaveDialog1.FileName));
+  ProjectData.prop_.project_name:=  ChangeFileExt( ExtractFileName(SaveDialog1.FileName), '');
+  ProjectData.prop_.file_name:= AnsiString(ProjectData.prop_.project_name + '.winPhast' );
+
+  ProjectData.prop_.WaveLength:= cfg.lambda;
+
+  if cfg.Fizo then
+    ProjectData.prop_.type_:= ptFizo
+  else
+    ProjectData.prop_.type_:= ptPhaseShift;
+
+  ProjectData.changed:= true;
+  
   if cfg.ComMode then
   begin
    { ResetEvent(ComEvent);
@@ -2158,6 +2206,9 @@ begin
     end;
     if not VideoScanEnabled then
       exit;
+
+    ProjectData.prop_.w:= vs.SizeX;
+    ProjectData.prop_.h:= vs.SizeY;
 
     int.Clear;
     int.Init(vs.SizeY, vs.SizeX, varByte);
@@ -2206,6 +2257,10 @@ begin
 
   if cfg.CameraType = 'DirectShow' then
   begin
+
+    ProjectData.prop_.w:= cfg.cam_w;
+    ProjectData.prop_.h:= cfg.cam_h;
+
     CurrentMatrix:=cmVideo_;
     VidCap1.Run;
     VidCap1.VideoRect:=CalcVideoRect;
@@ -2273,6 +2328,19 @@ begin
   s:=l.Strings[7];
   cfg.input:=StrToInt(copy(s, 1, pos(';', s)-1));
   l.Destroy;
+
+end;
+
+procedure TForm1.RenameProject1Click(Sender: TObject);
+
+
+begin
+  Project_rename(ProjectData);
+
+
+
+
+
 
 end;
 
@@ -2685,6 +2753,15 @@ begin
   Thread.Resume;
 end;
 
+procedure TForm1.N120Click(Sender: TObject);
+begin
+  if not phase.loaded then
+    exit;
+
+ AutoSavingForm.StartThread;
+ AutoSavingForm.Show;
+end;
+
 procedure TForm1.N12Click(Sender: TObject);
 var m: PMyInfernalType;
 begin
@@ -2733,10 +2810,11 @@ end;
 
 procedure TForm1.PnlMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
-var p, m: PMyInfernalType;
+var {p, m: PMyInfernalType;}
     i, w, h: integer;
     origin: TPoint;
-    scl: TReal;
+//    scl: TReal;
+    masked: boolean;
 begin
   if (pnl.DrawMode = dmLargeCross) and (Button = mbLeft) then
   begin
@@ -2749,23 +2827,67 @@ begin
    Form3.Series2.Clear;
    Form4.Series2.Clear;}
 
+   if not phase.loaded then exit;
+
+   masked:= CheckMask(mask_inner);
+   {
    p:=GetCurrentArray;
    m:=GetCurrentMask;
    if not p^.loaded then exit;
    if not m^.loaded then exit;
-   
+
    w:=p^.w;
    h:=p^.h;
+   }
+
+   w:= phase.w;
+   h:= phase.h;
 
    origin:=pnl.GetOrigin;
    {if cfg.input = 1 then
      scl:=(cfg.h1/int.h + cfg.w1/int.w)/2
    else
      scl:=(cfg.h2/int.h + cfg.w2/int.w)/2;}
-   scl:=cfg.scl_eye;
+//   scl:=cfg.scl_eye;
    {form3.Chart1.LeftAxis.AutomaticMaximum:=true;
    form3.Chart1.LeftAxis.AutomaticMinimum:=true;}
 //   form3.Chart1.LeftAxis.Minimum:=0;
+
+
+  if masked then
+  begin
+    for i:=0 to w-1 do
+      if mask_inner.b^[origin.y*w+i]=1 then
+        Series1.AddXY(i, phase.a^[origin.y*w+i])
+      else
+        Series1.AddNullXY(i, 0);
+
+    for i:=0 to h-1 do
+      if mask_inner.b^[i*w+origin.x]=1 then
+        LineSeries1.AddXY(i, phase.a^[i*w+origin.x])
+      else
+        LineSeries1.AddNullXY(i, 0);
+
+    if mask_inner.b^[origin.y*w+origin.x]=1 then
+    begin
+      Series2.AddXY(origin.x, phase.a^[origin.y*w+origin.x]);
+      PointSeries1.AddXY(origin.y, phase.a^[origin.y*w+origin.x]);
+    end;
+  end
+  else
+  begin
+    for i:=0 to w-1 do
+      Series1.AddXY(i ,phase.a^[origin.y*w+i]);
+
+    for i:=0 to h-1 do
+      LineSeries1.AddXY(i, phase.a^[i*w+origin.x]);
+
+    Series2.AddXY(origin.x, phase.a^[origin.y*w+origin.x]);
+    PointSeries1.AddXY(origin.y, phase.a^[origin.y*w+origin.x]);
+  end;
+
+
+   {
    if p^.loaded then
    case p^._type of
      varByte: begin
@@ -2807,6 +2929,7 @@ begin
                    end;
                  end;
    end;
+    }
    Chart1.Update;
 //   form3.Series2.AddXY((origin.x-p^.x_img)*scl, form3.Chart1.LeftAxis.Minimum);
 //   form3.Series2.AddXY((origin.x-p^.x_img)*scl, form3.Chart1.LeftAxis.Maximum);
@@ -3057,12 +3180,12 @@ begin
 //  mask_inner.Clear;
 //  mask_inner.Init(unwrap.h, unwrap.w, varByte, 1);
   m:=GetCurrentMask;
-  if (not final_phase.loaded) or (not m^.loaded) then
+  if (not phase.loaded) or (not m^.loaded) then
   begin
     ShowMessage('Расчет не проведен!');
     exit;
   end;
-  Form7.InitModel(final_phase.a^, m.b^, final_phase.w, final_phase.h);
+  Form7.InitModel(phase.a^, m.b^, phase.w, phase.h);
   Form7.ShowModal;
 end;
 
@@ -4150,10 +4273,18 @@ end;
 procedure TForm1.N78Click(Sender: TObject);
 var s: string;
 begin
-  if not final_phase.loaded then
+  if not phase.loaded then
     exit;
 
-  SaveDialog1.InitialDir:=ExtractFilePath(Application.ExeName);
+  if not CheckMask(mask_inner) then
+  begin
+    ShowMessage('Необходимо активировать маску');
+    exit;
+  end;
+
+
+//  SaveDialog1.InitialDir:=ExtractFilePath(Application.ExeName);
+  SaveDialog1.Title:= 'Сохранение файла ошибки';
   SaveDialog1.Filter:='Bin-files|*.bin';
 
   if not SaveDialog1.Execute  then
@@ -4162,7 +4293,7 @@ begin
   s:=SaveDialog1.FileName;
   s:=ChangeFileExt(s, '.bin');
 
-  CreateBin(final_phase, mask_inner, s);
+  CreateBin(phase, mask_inner, s);
 
 //  ShowMessage('Файл ошибки записан в директорию программы.');
 end;
@@ -4645,6 +4776,9 @@ begin
     for j:=0 to MainMenu1.Items[i].Count-1 do
       MainMenu1.Items[i].Items[j].Enabled:=b;
   end;
+
+  vt.Enabled:= b;
+
   {n1.Enabled:=b;
   n2.Enabled:=b;
   n15.Enabled:=b;
@@ -5566,6 +5700,7 @@ end;
 procedure TForm1.N117Click(Sender: TObject);
 begin
   OpenDialog1.Filter:='winPhast project files|*.winPhast';
+  OpenDialog1.Title:= 'Открыть проект';
 
   if not OpenDialog1.Execute() then
     exit;
@@ -5576,6 +5711,16 @@ begin
     AddToVt(ProjectData);
   end;
 
+end;
+
+procedure TForm1.N118Click(Sender: TObject);
+begin
+  RecalculateNode;
+end;
+
+procedure TForm1.N119Click(Sender: TObject);
+begin
+  SaveVtNode;
 end;
 
 procedure TForm1.N11Click(Sender: TObject);

@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 183
   Top = 100
   Caption = 'winPhast'
-  ClientHeight = 530
+  ClientHeight = 661
   ClientWidth = 1344
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -21,7 +21,7 @@ object Form1: TForm1
   TextHeight = 13
   object Splitter2: TSplitter
     Left = 0
-    Top = 320
+    Top = 451
     Width = 1344
     Height = 3
     Cursor = crVSplit
@@ -29,13 +29,13 @@ object Form1: TForm1
     Color = clBlack
     ParentColor = False
     Visible = False
-    ExplicitTop = 346
-    ExplicitWidth = 741
+    ExplicitLeft = -160
+    ExplicitTop = 312
   end
   object Splitter1: TSplitter
     Left = 250
     Top = 72
-    Height = 248
+    Height = 379
     Color = clBlack
     ParentColor = False
     ExplicitLeft = 776
@@ -57,7 +57,7 @@ object Form1: TForm1
       Left = 11
       Top = 2
       Width = 215
-      Height = 22
+      Height = 30
       AutoSize = True
       ButtonHeight = 30
       ButtonWidth = 31
@@ -99,7 +99,7 @@ object Form1: TForm1
       Left = 239
       Top = 2
       Width = 71
-      Height = 22
+      Height = 30
       AutoSize = True
       ButtonHeight = 30
       ButtonWidth = 31
@@ -131,7 +131,7 @@ object Form1: TForm1
       Left = 323
       Top = 2
       Width = 102
-      Height = 22
+      Height = 30
       AutoSize = True
       ButtonHeight = 30
       ButtonWidth = 31
@@ -615,7 +615,7 @@ object Form1: TForm1
     Width = 1344
     Height = 38
     ButtonHeight = 38
-    ButtonWidth = 171
+    ButtonWidth = 125
     Caption = 'ToolBar4'
     DisabledImages = ImageList5
     DrawingStyle = dsGradient
@@ -627,20 +627,20 @@ object Form1: TForm1
       Left = 0
       Top = 0
       AutoSize = True
-      Caption = #1047#1072#1075#1088#1091#1079#1080#1090#1100
+      Caption = #1054#1090#1082#1088#1099#1090#1100' '#1087#1088#1086#1077#1082#1090
       ImageIndex = 0
-      OnClick = ToolButton3Click
+      OnClick = N117Click
     end
     object ToolButton47: TToolButton
-      Left = 99
+      Left = 129
       Top = 0
       AutoSize = True
-      Caption = #1047#1072#1087#1080#1089#1100' '#1080#1085#1090#1077#1088#1092#1077#1088#1086#1075#1088#1072#1084#1084
+      Caption = #1048#1079#1084#1077#1088#1077#1085#1080#1077
       ImageIndex = 1
       OnClick = Action2Execute
     end
     object ToolButton48: TToolButton
-      Left = 274
+      Left = 234
       Top = 0
       AutoSize = True
       Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080
@@ -648,23 +648,25 @@ object Form1: TForm1
       OnClick = ToolButton33Click
     end
     object ToolButton49: TToolButton
-      Left = 376
+      Left = 336
       Top = 0
       AutoSize = True
       Caption = #1056#1072#1089#1095#1077#1090
       ImageIndex = 3
+      Visible = False
       OnClick = ToolButton49Click
     end
     object ToolButton50: TToolButton
-      Left = 458
+      Left = 418
       Top = 0
       AutoSize = True
       Caption = #1057#1086#1079#1076#1072#1090#1100' '#1086#1090#1095#1077#1090
       ImageIndex = 4
+      Visible = False
       OnClick = ToolButton40Click
     end
     object ToolButton51: TToolButton
-      Left = 577
+      Left = 537
       Top = 0
       AutoSize = True
       Caption = #1042#1099#1093#1086#1076
@@ -674,7 +676,7 @@ object Form1: TForm1
   end
   object Panel1: TPanel
     Left = 0
-    Top = 323
+    Top = 454
     Width = 1344
     Height = 188
     Align = alBottom
@@ -892,7 +894,7 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 511
+    Top = 642
     Width = 1344
     Height = 19
     Panels = <>
@@ -901,7 +903,7 @@ object Form1: TForm1
     Left = 0
     Top = 72
     Width = 250
-    Height = 248
+    Height = 379
     Align = alLeft
     Alignment = taLeftJustify
     BevelOuter = bvNone
@@ -910,7 +912,7 @@ object Form1: TForm1
       Left = 0
       Top = 0
       Width = 15
-      Height = 248
+      Height = 379
       Cursor = crHandPoint
       Hint = #1057#1074#1077#1088#1085#1091#1090#1100
       Align = alLeft
@@ -926,10 +928,10 @@ object Form1: TForm1
     Height = 24
     ShareImages = True
     Width = 24
-    Left = 1017
-    Top = 269
+    Left = 409
+    Top = 221
     Bitmap = {
-      494C01010F001100040018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010F002400240018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000600000006000000001002000000000000090
       0000000000000000000000000000000000000000000000000000000000000000
       00000000000000000000000000008F8F8F0098989800A6A6A600ADADAD000000
@@ -2125,10 +2127,10 @@ object Form1: TForm1
       000000000000}
   end
   object ImageList4: TImageList
-    Left = 1051
-    Top = 268
+    Left = 483
+    Top = 220
     Bitmap = {
-      494C01011B001D00040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01011B002400240010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000007000000001002000000000000070
       0000000000000000000000000000000000000000000000000000000000000000
       000000000000ADADAD00678067002C8B2C002CA02C0036A03600599E5900A8B7
@@ -3060,17 +3062,21 @@ object Form1: TForm1
       000000000000}
   end
   object OpenDialog1: TOpenDialog
-    Left = 1090
-    Top = 268
+    Left = 546
+    Top = 220
   end
   object MainMenu1: TMainMenu
     Images = ImageList4
-    Left = 1123
-    Top = 266
+    Left = 611
+    Top = 218
     object N1: TMenuItem
       Caption = #1060#1072#1081#1083
+      object N117: TMenuItem
+        Caption = #1054#1090#1082#1088#1099#1090#1100' '#1087#1088#1086#1077#1082#1090
+        OnClick = N117Click
+      end
       object N99: TMenuItem
-        Caption = #1054#1090#1082#1088#1099#1090#1100
+        Caption = #1047#1072#1075#1088#1091#1079#1080#1090#1100' '#1080#1079#1086#1073#1088#1072#1078#1077#1085#1080#1103
         ImageIndex = 5
         ShortCut = 16463
         OnClick = ToolButton3Click
@@ -3079,15 +3085,25 @@ object Form1: TForm1
         Caption = #1047#1072#1093#1074#1072#1090' '#1080#1079#1086#1073#1088#1072#1078#1077#1085#1080#1081
         ImageIndex = 13
         ShortCut = 16461
+        Visible = False
         OnClick = Action2Execute
       end
       object N8: TMenuItem
         Caption = '-'
       end
+      object test1: TMenuItem
+        Caption = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1087#1088#1086#1077#1082#1090
+        ShortCut = 16467
+        OnClick = test1Click
+      end
+      object N120: TMenuItem
+        Caption = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1086#1073#1083#1072#1089#1090#1100
+        OnClick = N120Click
+      end
       object N95: TMenuItem
         Caption = #1057#1086#1093#1088#1072#1085#1080#1090#1100
         ImageIndex = 6
-        ShortCut = 16467
+        Visible = False
         OnClick = N95Click
       end
       object N5: TMenuItem
@@ -3118,6 +3134,7 @@ object Form1: TForm1
         Caption = #1054#1090#1095#1077#1090
         ImageIndex = 26
         ShortCut = 16466
+        Visible = False
         OnClick = ToolButton40Click
       end
       object N9: TMenuItem
@@ -3131,13 +3148,11 @@ object Form1: TForm1
         ShortCut = 16465
         OnClick = ToolButton19Click
       end
-      object test1: TMenuItem
-        Caption = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1087#1088#1086#1077#1082#1090
-        OnClick = test1Click
-      end
-      object N117: TMenuItem
-        Caption = #1054#1090#1082#1088#1099#1090#1100' '#1087#1088#1086#1077#1082#1090
-        OnClick = N117Click
+      object RenameProject1: TMenuItem
+        Caption = 'Rename Project'
+        ShortCut = 113
+        Visible = False
+        OnClick = RenameProject1Click
       end
     end
     object N23: TMenuItem
@@ -3286,6 +3301,7 @@ object Form1: TForm1
     end
     object N32: TMenuItem
       Caption = #1054#1076#1085#1086' '#1080#1079#1084#1077#1088#1077#1085#1080#1077
+      Visible = False
       object N3: TMenuItem
         Caption = #1047#1072#1075#1088#1091#1079#1080#1090#1100
         ImageIndex = 5
@@ -3308,6 +3324,7 @@ object Form1: TForm1
     end
     object Cthbz1: TMenuItem
       Caption = #1057#1077#1088#1080#1103' '#1080#1079#1084#1077#1088#1077#1085#1080#1081
+      Visible = False
       object N36: TMenuItem
         Caption = #1047#1072#1075#1088#1091#1079#1080#1090#1100
         ImageIndex = 5
@@ -3342,38 +3359,45 @@ object Form1: TForm1
       end
       object N12: TMenuItem
         Caption = #1048#1085#1090#1077#1088#1092#1077#1088#1086#1075#1088#1072#1084#1084#1072
+        Visible = False
         OnClick = N12Click
       end
       object N88: TMenuItem
         Caption = #1060#1072#1079#1072
+        Visible = False
         OnClick = N88Click
       end
       object N94: TMenuItem
         Caption = #1040#1084#1087#1083#1080#1090#1091#1076#1072
+        Visible = False
         OnClick = N94Click
       end
       object N13: TMenuItem
         Caption = #1056#1077#1079#1091#1083#1100#1090#1072#1090
+        Visible = False
         OnClick = N13Click
       end
       object N20: TMenuItem
         Caption = '-'
-        Visible = False
       end
       object N111: TMenuItem
         Caption = #1052#1072#1089#1082#1072' 1'
+        Visible = False
         OnClick = N111Click
       end
       object N212: TMenuItem
         Caption = #1052#1072#1089#1082#1072' 2'
+        Visible = False
         OnClick = N212Click
       end
       object N97: TMenuItem
         Caption = #1054#1073#1097#1072#1103' '#1084#1072#1089#1082#1072
+        Visible = False
         OnClick = N97Click
       end
       object N96: TMenuItem
         Caption = '-'
+        Visible = False
       end
       object N80: TMenuItem
         Caption = #1055#1086#1082#1072#1079#1072#1090#1100' '#1075#1088#1072#1092#1080#1082#1080
@@ -3446,6 +3470,7 @@ object Form1: TForm1
     end
     object N22: TMenuItem
       Caption = #1051#1091#1085#1082#1072
+      Visible = False
       object N47: TMenuItem
         Caption = #1052#1072#1089#1082#1072' '#1074#1085#1091#1090#1088#1077#1085#1085#1103#1103
         object N48: TMenuItem
@@ -3586,6 +3611,7 @@ object Form1: TForm1
     end
     object N82: TMenuItem
       Caption = #1057#1090#1072#1090#1080#1089#1090#1080#1082#1072
+      Visible = False
       object RMS1: TMenuItem
         Caption = #1056#1072#1089#1095#1077#1090' RMS, PV'
         OnClick = RMS1Click
@@ -3605,6 +3631,7 @@ object Form1: TForm1
     end
     object N89: TMenuItem
       Caption = #1044#1074#1077' '#1076#1083#1080#1085#1099' '#1074#1086#1083#1085#1099
+      Visible = False
       object N90: TMenuItem
         Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080
         OnClick = N90Click
@@ -3616,17 +3643,17 @@ object Form1: TForm1
     end
   end
   object SaveDialog1: TSaveDialog
-    Left = 1159
-    Top = 268
+    Left = 671
+    Top = 220
   end
   object ImageList2: TImageList
     Height = 24
     ShareImages = True
     Width = 24
-    Left = 1194
-    Top = 268
+    Left = 602
+    Top = 140
     Bitmap = {
-      494C01010F001100040018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010F002400240018001800FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000600000006000000001002000000000000090
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000A3A3A300A6A6A600A9A9A900ABABAB000000
@@ -4824,10 +4851,10 @@ object Form1: TForm1
   object ImageList3: TImageList
     Height = 32
     Width = 32
-    Left = 1019
-    Top = 188
+    Left = 467
+    Top = 140
     Bitmap = {
-      494C01010B000D00040020002000FFFFFFFFFF00FFFFFFFFFFFFFFFF424D3600
+      494C01010B002400240020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       00000000000036000000280000008000000060000000010020000000000000C0
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -6415,15 +6442,16 @@ object Form1: TForm1
       00000001C000001FFC00001FF000000100000003C000001FFE20001FF0000001
       00000003C000000FFFE0003FF000000100000003E000001FFFE0007FF8000001
       80F8003FFFFFFFFFFFF01FFFFE000003FFFE0FFFFFFFFFFFFFFF7FFFFFFFFF9F
-      FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
+      FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
+      000000000000}
   end
   object ImageList5: TImageList
     Height = 32
     Width = 32
-    Left = 1084
-    Top = 189
+    Left = 532
+    Top = 141
     Bitmap = {
-      494C010106000800040020002000FFFFFFFFFF00FFFFFFFFFFFFFFFF424D3600
+      494C010106002400240020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000004000000001002000000000000080
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -7483,6 +7511,19 @@ object Form1: TForm1
       00000001C000001FFC00001FF000000100000003C000001FFE20001FF0000001
       00000003C000000FFFE0003FF000000100000003E000001FFFE0007FF8000001
       80F8003FFFFFFFFFFFF01FFFFE000003FFFE0FFFFFFFFFFFFFFF7FFFFFFFFF9F
-      FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
+      FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
+      000000000000}
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 672
+    Top = 144
+    object N118: TMenuItem
+      Caption = #1055#1077#1088#1077#1089#1095#1080#1090#1072#1090#1100
+      OnClick = N118Click
+    end
+    object N119: TMenuItem
+      Caption = #1057#1086#1093#1088#1072#1085#1080#1090#1100
+      OnClick = N119Click
+    end
   end
 end

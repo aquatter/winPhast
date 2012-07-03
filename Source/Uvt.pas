@@ -26,13 +26,29 @@ type
     ptDoBase
   );
 
+  TNodeType = (
+    ntImage,
+    ntPhase,
+    ntUnwrap,
+    ntSeq,
+    ntRec,
+    ntImage_root,
+    ntHeader,
+    ntParam,
+    ntMask1,
+    ntMask2,
+    ntAmp,
+    ntCombinedMask,
+    ntMean_Unwrap
+  );
+
 
   PVtNodeData = ^TVtNodeData;
   TVtNodeData = record
     pd: TProjectData;
     num_seq, num_rec, num_img: integer;
     name, value: string;
-    type_: (ntImage, ntPhase, ntUnwrap, ntSeq, ntRec, ntImage_root, ntHeader, ntParam, ntMask1, ntMask2);
+    type_: TNodeType;
     param_type_: TParamType;
     ValueType: TValueType;
   end;
@@ -45,6 +61,7 @@ type
     class procedure OnVtChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     class procedure OnVtCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
     class procedure OnVtPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
+    class procedure OnVtKeyPress(Sender: TObject; var Key: Char);
   end;
 
   TVtEditLink = class(TInterfacedObject, IVTEditLink)
@@ -80,10 +97,13 @@ procedure AddMask(pd: TProjectData; pnl_: tpanel1; Shape: TDrawMode; mask_: TAct
 procedure SubstructMask(pd: TProjectData; pnl_: tpanel1; Shape: TDrawMode; mask_: TActiveMask; var p, mask: TMyInfernalType);
 procedure ClearMask(pd: TProjectData; pnl_: tpanel1; mask_: TActiveMask; var p, mask: TMyInfernalType);
 procedure SelectAll(pd: TProjectData; pnl_: tpanel1; mask_: TActiveMask; var p, mask: TMyInfernalType);
+procedure SaveVtNode;
+procedure RecalculateNode;
+procedure Project_rename(pd: TProjectData);
 
 implementation
 
-uses Unit1, Forms, SysUtils, crude, UPhast2Vars, UTProjectCalculationThread;
+uses Unit1, Forms, SysUtils, crude, UPhast2Vars, UTProjectCalculationThread, Dialogs;
 
 procedure InitVt;
 var col: TVirtualTreeColumn;
@@ -95,11 +115,11 @@ begin
   vt.Align:= alClient;
   vt.NodeDataSize:= SizeOf(TVtNodeData);
   vt.TreeOptions.PaintOptions:= vt.TreeOptions.PaintOptions + [toShowHorzGridLines];
-  vt.TreeOptions.SelectionOptions:= vt.TreeOptions.SelectionOptions + [toFullRowSelect, toLevelSelectConstraint];
+  vt.TreeOptions.SelectionOptions:= vt.TreeOptions.SelectionOptions + [toFullRowSelect, toLevelSelectConstraint, toRightClickSelect];
   vt.TreeOptions.AnimationOptions:= vt.TreeOptions.AnimationOptions + [toAnimatedToggle, toAdvancedAnimatedToggle];
   vt.DefaultText:= '';
   vt.BorderStyle:= bsNone;
-
+  vt.PopupMenu:= form1.PopupMenu1;
 
 //  vt.Header.Options:= vt.Header.Options + [hoVisible, hoColumnResize, hoAutoSpring];
 
@@ -127,6 +147,7 @@ begin
   vt.OnChange:= TDummyObject.OnVtChange;
   vt.OnCreateEditor:= TDummyObject.OnVtCreateEditor;
   vt.OnPaintText:= TDummyObject.OnVtPaintText;
+//  vt.OnKeyPress:= TDummyObject.OnVtKeyPress;
 
 end;
 
@@ -142,9 +163,9 @@ begin
     d:= PVtNodeData(vt.GetNodeData(t));
     if Assigned(d) then
     begin
-      d^.name:= string(pd.prop_.file_name);
+      d^.name:= pd.prop_.project_name; // string(pd.prop_.file_name);
       d^.pd:= pd;
-      d^.ValueType:= vtString;
+      d^.ValueType:= vtNone;
       d^.type_:= ntHeader;
       d^.param_type_:= ptNone;
     end;
@@ -170,7 +191,7 @@ begin
           d^.pd:= pd;
         end;
       end;
-
+      {
       p:= vt.AddChild(param_node);
       if Assigned(p) then
       begin
@@ -238,6 +259,7 @@ begin
           d^.pd:= pd;
         end;
       end;
+      }
     end;
 
     masks_node:= vt.AddChild(t);
@@ -277,6 +299,19 @@ begin
           d^.value:= string(pd.mask2);
           d^.ValueType:= vtNone;
           d^.type_:= ntMask2;
+          d^.pd:= pd;
+        end;
+      end;
+
+      p:= vt.AddChild(masks_node);
+      if Assigned(p) then
+      begin
+        d:= vt.GetNodeData(p);
+        if Assigned(d) then
+        begin
+          d^.name:= 'Общая маска';
+          d^.ValueType:= vtNone;
+          d^.type_:= ntCombinedMask;
           d^.pd:= pd;
         end;
       end;
@@ -381,6 +416,23 @@ begin
               d:= PVtNodeData(vt.GetNodeData(p));
               if Assigned(d) then
               begin
+                d^.name:= 'Амплитуда: ';
+                d^.value:= string(pd.Get(i).Get(j).amp);
+                d^.type_:= ntAmp;
+                d^.num_seq:= i;
+                d^.num_rec:= j;
+                d^.pd:= pd;
+                d^.ValueType:= vtNone;
+              end;
+            end;
+
+            p:= vt.AddChild(rec_);
+
+            if Assigned(p) then
+            begin
+              d:= PVtNodeData(vt.GetNodeData(p));
+              if Assigned(d) then
+              begin
                 d^.name:= 'Сшитая фаза: ';
                 d^.value:= string(pd.Get(i).Get(j).unwrap);
                 d^.type_:= ntUnwrap;
@@ -392,6 +444,37 @@ begin
             end;
           end;
         end;
+
+        p:= vt.AddChild(seq_);
+        if Assigned(p) then
+        begin
+          p.States:= p.States + [vsExpanded];
+          d:= vt.GetNodeData(p);
+          if Assigned(d) then
+          begin
+            d^.name:= 'Среднее значение';
+            d^.ValueType:= vtNone;
+            d^.num_seq:= i;
+            d^.num_rec:= -1;
+            d^.pd:= pd;
+          end;
+          p:= vt.AddChild(p);
+          if Assigned(p) then
+          begin
+            p.States:= p.States + [vsExpanded];
+            d:= vt.GetNodeData(p);
+            if Assigned(d) then
+            begin
+              d^.value:= string(pd[i].mean_unwrap);
+              d^.type_:= ntMean_Unwrap;
+              d^.ValueType:= vtNone;
+              d^.num_seq:= i;
+              d^.num_rec:= -1;
+              d^.pd:= pd;
+            end;
+          end;
+        end;
+
       end;
     end;
   end;
@@ -422,6 +505,7 @@ class procedure TDummyObject.OnVtDblClick(Sender: TObject);
 var p: PVirtualNode;
     d: PVtNodeData;
     s: string;
+    i: integer;
 begin
   p:= vt.GetFirstSelected(false);
   if Assigned(p) then
@@ -440,7 +524,7 @@ begin
                  end;
 
         ntPhase: begin
-                   s:= string(d^.pd.prop_.file_path + d^.pd.Get(d^.num_seq).Get(d^.num_seq).phase);
+                   s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].phase);
                    if FileExists(s) then
                    begin
                      phase._type:= varDouble;
@@ -450,10 +534,26 @@ begin
                    else
                    begin
                      d^.pd.ClearCalculation;
-                     d^.pd.Get(d^.num_seq).Get(d^.num_rec).Add2Calculation(calcPhase);
+                     d^.pd[d^.num_seq][d^.num_rec].Add2Calculation(calcPhase);
+                     d^.pd[d^.num_seq][d^.num_rec].phase_calculated:= false;
                      StartCalculationThread(d^.pd);
                    end;
                  end;
+        ntAmp: begin
+                 s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].amp);
+                 if FileExists(s) then
+                 begin
+                   phase._type:= varDouble;
+                   LoadBin(phase, s);
+                   pnl.DrawImage(phase, phase);
+                 end
+                 else
+                 begin
+                   d^.pd.ClearCalculation;
+                   d^.pd.Get(d^.num_seq).Get(d^.num_rec).Add2Calculation(calcAmp);
+                   StartCalculationThread(d^.pd);
+                 end;
+               end;
         ntMask1: begin
                    s:= string(d^.pd.prop_.file_path + d^.pd.mask1);
                    if FileExists(s) then
@@ -463,6 +563,7 @@ begin
 
                      pnl.DrawImage(phase, mask_inner);
                      d^.pd.active:= amMask1;
+                     vt.Repaint;
                    end;
                  end;
         ntMask2: begin
@@ -470,12 +571,76 @@ begin
                    if FileExists(s) then
                    begin
                      mask_inner._type:= varByte;
-                     LoadBin(mask_inner, s);
+                     LoadBin(mask_inner, varByte, s);
 
                      pnl.DrawImage(phase, mask_inner);
                      d^.pd.active:= amMask2;
+                     vt.Repaint;
                    end;
                  end;
+        ntCombinedMask: begin
+                          if FileExists(string(d^.pd.prop_.file_path + d^.pd.mask1)) and FileExists(string(d^.pd.prop_.file_path + d^.pd.mask2)) then
+                          begin
+                            LoadBin(mask_inner, varByte, string(d^.pd.prop_.file_path + d^.pd.mask1));
+                            LoadBin(mask_outer, varByte, string(d^.pd.prop_.file_path + d^.pd.mask2));
+
+                            for i:=0 to mask_inner.w*mask_inner.h-1 do
+                              if mask_outer.b^[i] = 1 then
+                                mask_inner.b^[i]:= 1;
+
+                            pnl.DrawImage(phase, mask_inner);
+                            d^.pd.active:= amCombined;
+                            vt.Repaint;
+                          end;
+                        end;
+        ntUnwrap: begin
+                    s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].unwrap);
+                    if FileExists(s) then
+                    begin
+                      phase._type:= varDouble;
+                      LoadBin(phase, s);
+                      if CheckMask(mask_inner) then
+                        pnl.DrawImage(phase, mask_inner)
+                      else
+                        pnl.DrawImage(phase, phase);
+                    end
+                    else
+                    begin
+                      d^.pd.ClearCalculation;
+                      {
+                      s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].phase);
+                      if not FileExists(s) then
+                      begin
+                        d^.pd[d^.num_seq][d^.num_rec].Add2Calculation(calcPhase);
+                        d^.pd[d^.num_seq][d^.num_rec].phase_calculated:= false;
+                      end;
+                      }
+                      d^.pd[d^.num_seq][d^.num_rec].Add2Calculation(calcUnwrap);
+                      d^.pd[d^.num_seq][d^.num_rec].unwrap_calculated:= false;
+                      StartCalculationThread(d^.pd);
+                    end;
+                  end;
+        ntMean_Unwrap:  begin
+                          s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq].mean_unwrap);
+
+                          if FileExists(s) then
+                          begin
+                            LoadBin(phase, varDouble, s);
+
+                            if CheckMask(mask_inner) then
+                              pnl.DrawImage(phase, mask_inner)
+                            else
+                              pnl.DrawImage(phase, phase);
+
+                          end
+                          else
+                          begin
+                            d^.pd.ClearCalculation;
+                            d^.pd[d^.num_seq].doMean:= true;
+                            StartCalculationThread(d^.pd);
+                          end;
+
+                        end;
       end;
 
     end;
@@ -500,12 +665,43 @@ begin
 
 end;
 
+class procedure TDummyObject.OnVtKeyPress(Sender: TObject; var Key: Char);
+var node: PVirtualNode;
+    d: PVtNodeData;
+begin
+  node:= vt.GetFirstSelected();
+  if Assigned(node) then
+  begin
+    ShowMessage(IntToStr(integer(Key)));
+
+
+
+  end;
+
+end;
+
 class procedure TDummyObject.OnVtPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
 var d: PVtNodeData;
+
+procedure ChangeFont(node_type: TNodeType; active_mask: TActiveMask);
+begin
+  if node_type = d^.type_ then
+    if d^.pd.active = active_mask then
+        TargetCanvas.Font.Style:= [fsBold]
+      else
+        TargetCanvas.Font.Style:= [];
+end;
+
+
 begin
   d:= Sender.GetNodeData(Node);
   if Assigned(d) then
   begin
+    ChangeFont(ntMask1, amMask1);
+    ChangeFont(ntMask2, amMask2);
+    ChangeFont(ntCombinedMask, amCombined);
+
+    {
     if d^.type_ = ntMask1 then
       if d^.pd.active = amMask1 then
         TargetCanvas.Font.Style:= [fsBold]
@@ -517,6 +713,7 @@ begin
         TargetCanvas.Font.Style:= [fsBold]
       else
         TargetCanvas.Font.Style:= [];
+     }
   end;
 end;
 
@@ -964,6 +1161,234 @@ begin
   SaveMaskAndUpdateVt(pd, mask, mask_);
 
   pnl_.DrawImage(p, mask);
+end;
+
+
+procedure SaveVtNode;
+var p: PVirtualNode;
+    d: PVtNodeData;
+    s, name: string;
+    data: TMyInfernalType;
+    masked: boolean;
+begin
+  data:= TMyInfernalType.Create;
+
+  p:= vt.GetFirstSelected();
+  if Assigned(p) then
+  begin
+    d:= vt.GetNodeData(p);
+    if Assigned(d) then
+    begin
+      case d^.type_ of
+        ntImage: ;
+        ntPhase, ntAmp: begin
+                   if d^.type_ = ntPhase then
+                     s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].phase)
+                   else
+                     s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].amp);
+
+                   if FileExists(s) then
+                   begin
+                     LoadBin(data, varDouble, s);
+
+                     Form1.SaveDialog1.Filter:= 'bmp-file|*.bmp|matlab-file|*.m|txt-file|*.txt';
+                     Form1.SaveDialog1.Title:= 'Введите имя файла';
+
+                     if Form1.SaveDialog1.Execute then
+                     begin
+                       name:= form1.SaveDialog1.FileName;
+                       case Form1.SaveDialog1.FilterIndex of
+                         1: begin
+                              name:= ChangeFileExt(name, '.bmp');
+                              CreateBmp(data, true, name);
+                            end;
+
+                         2: begin
+                              name:= ChangeFileExt(name, '.m');
+                              SaveRealArray2Matlab(data, 1, name);
+                            end;
+
+                         3: begin
+                              name:= ChangeFileExt(name, '.txt');
+                              SaveData2Txt(data, data, name);
+                            end;
+                       end;
+                     end;
+
+                   end;
+                 end;
+        ntUnwrap, ntMean_Unwrap:
+        begin
+          if d^.type_ = ntUnwrap then
+            s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].phase)
+          else
+            s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq].mean_unwrap);
+
+          if FileExists(s) then
+          begin
+            LoadBin(data, varDouble, s);
+
+            Form1.SaveDialog1.Filter:= 'bmp-file|*.bmp|matlab-file|*.m|txt-file|*.txt';
+            Form1.SaveDialog1.Title:= 'Введите имя файла';
+
+            masked:= CheckMask(mask_inner);
+
+            if Form1.SaveDialog1.Execute then
+            begin
+              name:= form1.SaveDialog1.FileName;
+              case Form1.SaveDialog1.FilterIndex of
+                1: begin
+                     name:= ChangeFileExt(name, '.bmp');
+                     if masked then
+                       CreateBmp(data, mask_inner, true, name)
+                     else
+                       CreateBmp(data, true, name);
+                   end;
+
+                2: begin
+                     name:= ChangeFileExt(name, '.m');
+                     SaveRealArray2Matlab(data, 1, name);
+                   end;
+
+                3: begin
+                     name:= ChangeFileExt(name, '.txt');
+                     if masked then
+                       SaveData2Txt(data, mask_inner, name)
+                     else
+                       SaveData2Txt(data, data, name);
+                   end;
+              end;
+            end;
+
+          end;
+        end;
+      end;
+    end;
+  end;
+  data.Destroy;
+
+end;
+
+procedure RecalculateNode;
+var p: PVirtualNode;
+    d: PVtNodeData;
+    s, name: string;
+    data: TMyInfernalType;
+    masked: boolean;
+    i,j: integer;
+begin
+  p:= vt.GetFirstSelected();
+  if Assigned(p) then
+  begin
+    d:= vt.GetNodeData(p);
+    if Assigned(d) then
+    begin
+      case d^.type_ of
+        ntPhase, ntAmp:
+        begin
+
+          if d^.type_ = ntAmp then
+            s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].amp)
+          else
+            s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].phase);
+
+          if FileExists(s) then
+            DeleteFile(s);
+
+          d^.pd.ClearCalculation;
+          if d^.type_ = ntAmp then
+            d^.pd[d^.num_seq][d^.num_rec].Add2Calculation(calcAmp)
+          else
+            d^.pd[d^.num_seq][d^.num_rec].Add2Calculation(calcPhase);
+
+          d^.pd[d^.num_seq][d^.num_rec].phase_calculated:= false;
+          StartCalculationThread(d^.pd);
+        end;
+        ntUnwrap:
+        begin
+          s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].unwrap);
+          if FileExists(s) then
+            DeleteFile(s);
+
+          d^.pd[d^.num_seq][d^.num_rec].Add2Calculation(calcUnwrap);
+          d^.pd[d^.num_seq][d^.num_rec].unwrap_calculated:= false;
+          StartCalculationThread(d^.pd);
+        end;
+        ntMean_Unwrap:
+        begin
+          s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq].mean_unwrap);
+          if FileExists(s) then
+            DeleteFile(s);
+
+          d^.pd.ClearCalculation;
+          d^.pd[d^.num_seq].doMean:= true;
+          StartCalculationThread(d^.pd);
+
+        end;
+        ntSeq:
+        begin
+          d^.pd.ClearCalculation;
+          for i:=0 to d^.pd[d^.num_seq].Count-1 do
+          begin
+            DeleteFile(string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][i].amp));
+            DeleteFile(string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][i].phase));
+            DeleteFile(string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][i].unwrap));
+
+            d^.pd[d^.num_seq][i].Add2Calculation(calcUnwrap);
+          end;
+          DeleteFile(string(d^.pd.prop_.file_path + d^.pd[d^.num_seq].mean_unwrap));
+
+          d^.pd[d^.num_seq].doMean:= cfg.do_mean;
+          StartCalculationThread(d^.pd);
+        end;
+        ntHeader:
+        begin
+          for i:=0 to d^.pd.Count-1 do
+          begin
+            for j:=0 to d^.pd[i].Count-1 do
+            begin
+              DeleteFile(string(d^.pd.prop_.file_path + d^.pd[i][j].amp));
+              DeleteFile(string(d^.pd.prop_.file_path + d^.pd[i][j].phase));
+              DeleteFile(string(d^.pd.prop_.file_path + d^.pd[i][j].unwrap));
+              d^.pd[i][j].Add2Calculation(calcUnwrap);
+            end;
+            DeleteFile(string(d^.pd.prop_.file_path + d^.pd[i].mean_unwrap));
+            d^.pd[i].doMean:= cfg.do_mean;
+          end;
+          StartCalculationThread(d^.pd);
+        end;
+      end;
+    end;
+  end;
+end;
+
+
+procedure Project_rename(pd: TProjectData);
+var node: PVirtualNode;
+    d: PVtNodeData;
+    old_name, new_name: string;
+begin
+
+  node:= vt.GetFirstSelected();
+  if Assigned(node) then
+  begin
+    d:= vt.GetNodeData(node);
+    if Assigned(d) then
+    begin
+      if not (d^.type_ = ntHeader) then
+        exit;
+
+        old_name:= pd.prop_.project_name;
+        new_name:= InputBox('Переименование проекта', 'Введите новое имя проекта:', old_name);
+        if old_name <> new_name then
+        begin
+          pd.prop_.project_name:= new_name;
+          pd.changed:= true;
+          UpdateVt;
+        end;
+    end;
+  end;
+
 end;
 
 end.

@@ -59,7 +59,7 @@ begin
   pnl.DrawMode:=dmNone;
   DirectShowCaptureThread:=TDirectShowCaptureThread.Create(true);
   DirectShowCaptureThread.FreeOnTerminate:=true;
-  DirectShowCaptureThread.Resume;
+  DirectShowCaptureThread.Start;
 
   close;
 end;

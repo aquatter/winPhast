@@ -146,6 +146,9 @@
 			<DCCReference Include="Source\UProjectData.pas"/>
 			<DCCReference Include="Source\Uvt.pas"/>
 			<DCCReference Include="Source\UTProjectCalculationThread.pas"/>
+			<DCCReference Include="Source\UAutoSavingForm.pas">
+				<Form>AutoSavingForm</Form>
+			</DCCReference>
 			<None Include="Project1.todo"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
