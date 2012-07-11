@@ -7,12 +7,14 @@ uses
 
 type
   TProjectType = (ptPhaseShift, ptFizo, ptDynamic);
-  TCalculationList = (calcPhase, calcUnwrap, calcAmp, calcMean_Unwrap, calcEverythingElse);
+  TCalculationList = (calcPhase, calcUnwrap, calcAmp, calcMean_Unwrap, calcPhase2, calcAmp2, calcEverythingElse);
   TActiveMask = (amNone, amMask1, amMask2, amCombined);
 
   TProjectProp = record
     type_: TProjectType;
+    how_many_wavelengths: integer;
     WaveLength: treal;
+    WaveLength2: treal;
     w,h: integer;
     file_name, file_path: AnsiString;
     project_name: string;
@@ -21,8 +23,8 @@ type
 
   PRec = ^TRec;
   TRec = class
-    img: TList<AnsiString>;
-    phase, unwrap, amp: AnsiString;
+    img, img2: TList<AnsiString>;
+    phase, unwrap, amp, phase2, amp2: AnsiString;
     phase_calculated: boolean;
     unwrap_calculated: boolean;
     what_to_calc: array of TCalculationList;
@@ -165,12 +167,15 @@ end;
 constructor TRec.Create;
 begin
   img:=TList<AnsiString>.Create;
+  img2:=TList<AnsiString>.Create;
 end;
 
 destructor TRec.Destroy;
 begin
   img.Clear;
   img.Free;
+  img2.Clear;
+  img2.Free;
   Finalize(what_to_calc);
   inherited;
 end;

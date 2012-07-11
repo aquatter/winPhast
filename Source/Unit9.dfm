@@ -215,7 +215,9 @@ object Form9: TForm9
     Width = 118
     Height = 17
     Max = 255
+    Min = 128
     PageSize = 0
+    Position = 128
     TabOrder = 8
     OnChange = ScrollBar3Change
   end

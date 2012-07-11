@@ -346,10 +346,15 @@ begin
     form1.MoveMirrorCom(ScrollBar2.Position)
   else
     MoveMirror(cfg.port, ScrollBar2.Position);
-  cfg.m_shift:=ScrollBar2.Position;
+
+  if cfg.how_many_wavelengths = 1 then
+    cfg.Shifts[cfg.LazerNum]:= ScrollBar2.Position
+  else
+    cfg.Shifts[1]:= ScrollBar2.Position;
+
+//  cfg.m_shift:=ScrollBar2.Position;
   if cfg.ComMode then
     cfg.Shifts[cfg.LazerNum]:=cfg.m_shift;
-
 end;
 
 procedure TForm9.ScrollBar3Change(Sender: TObject);
@@ -376,12 +381,25 @@ begin
     vs.SetExpos(cfg.expos, VSLIB3_SCALAR_UNIT_MS);
     tb.Position:=cfg.expos;
     ed.Text:=IntToStr(cfg.expos);
+
     if cfg.Com_phase_shift then
       form1.MoveMirrorCom(0)
     else
       MoveMirror(cfg.port, 0);
-    ScrollBar2.Position:=cfg.m_shift;
-    ed2.Text:=IntToStr(cfg.m_shift);
+
+    if cfg.how_many_wavelengths = 1 then
+    begin
+      ScrollBar2.Position:=cfg.Shifts[cfg.LazerNum];
+      ed2.Text:=IntToStr(cfg.Shifts[cfg.LazerNum]);
+    end
+    else
+    begin
+      ScrollBar2.Position:=cfg.Shifts[1];
+      ed2.Text:=IntToStr(cfg.Shifts[1]);
+    end;
+
+//    ScrollBar2.Position:=cfg.m_shift;
+//    ed2.Text:=IntToStr(cfg.m_shift);
   end;
   Left:=cfg.capture_left;
   Top:=cfg.capture_top;

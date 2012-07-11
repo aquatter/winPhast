@@ -26,7 +26,7 @@ var
 implementation
 
 uses UPhast2Vars, windows, unit10, sysutils, crude, VidCap, utype, unit1,
-  UProjectData, Uvt, UPTree;
+  UProjectData, Uvt, UPTree, Dialogs;
 
 procedure TDirectShowCaptureThread.Draw;
 begin
@@ -60,7 +60,7 @@ begin
 end;
 
 procedure TDirectShowCaptureThread.Execute;
-var i, l, j, k, w, h: integer;
+var i, l, j, k, w, h, q: integer;
     p: PByteArray;
     rec_: TRec;
     seq_: TSeq;
@@ -105,6 +105,9 @@ begin
     seq_:= ProjectData.Add;
     rec_:= seq_.Add;
 
+    for q:=0 to ProjectData.prop_.how_many_wavelengths-1 do
+    begin
+
     if cfg.Fizo then
     begin
       seq:=l+1;
@@ -121,15 +124,21 @@ begin
         for k:=0 to w*h-1 do
           buff_mean.a^[k]:=p^[3*k];
 
-        rec_.img.Add(AnsiString('cadr_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp'));
-        CreateBmp(buff_mean, false,  string(ProjectData.prop_.file_path) + 'cadr_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp');
+        if q = 0 then
+        begin
+          CreateBmp(buff_mean, false,  string(ProjectData.prop_.file_path) + 'cadr_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp');
+          rec_.img.Add(AnsiString('cadr_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp'));
+        end
+        else
+        begin
+          CreateBmp(buff_mean, false,  string(ProjectData.prop_.file_path) + 'cadr2_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp');
+          rec_.img2.Add(AnsiString('cadr2_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp'));
+        end;
       end;
 
       WaitForSingleObject(WaitEvent, cfg.SeriesPause);
-      continue;
+      break;
     end;
-
-
 
     for i:=0 to cfg.steps-1 do
     begin
@@ -139,7 +148,13 @@ begin
       seq:=l+1;
       Synchronize(Draw);
 
-      _step:=round(i*cfg.m_shift/(cfg.steps-1));
+
+      if ProjectData.prop_.how_many_wavelengths = 1 then
+        _step:=round(i*cfg.Shifts[cfg.LazerNum]/(cfg.steps-1))
+      else
+       _step:=round(i*cfg.Shifts[q+1]/(cfg.steps-1));
+
+//      _step:=round(i*cfg.m_shift/(cfg.steps-1));
 
       if cfg.Com_phase_shift then
         form1.MoveMirrorCom(_step)
@@ -165,9 +180,28 @@ begin
       for k:=0 to w*h-1 do
         buff_mean.a^[k]:=buff_mean.a^[k]/num_mean;
 
-      rec_.img.Add(AnsiString('cadr_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp'));
-      CreateBmp(buff_mean, false,  string(ProjectData.prop_.file_path) + 'cadr_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp');
+      if q = 0 then
+      begin
+        CreateBmp(buff_mean, false,  string(ProjectData.prop_.file_path) + 'cadr_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp');
+        rec_.img.Add(AnsiString('cadr_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp'));
+      end
+      else
+      begin
+        CreateBmp(buff_mean, false,  string(ProjectData.prop_.file_path) + 'cadr2_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp');
+        rec_.img2.Add(AnsiString('cadr2_i1_s'+IntToStr(i+1)+'_c'+IntToStr(l+1)+'.bmp'));
+      end;
       if cancel then break;
+    end;
+
+    if ProjectData.prop_.how_many_wavelengths = 2 then
+    begin
+      if q = 0 then
+        Form1.write_to_com(0, 32)
+      else
+        Form1.write_to_com(0, 64);
+
+      Synchronize(procedure begin ShowMessage('Смена лазера. Подождите...'); end);
+    end;
     end;
   end;
 

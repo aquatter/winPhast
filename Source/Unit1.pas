@@ -457,6 +457,7 @@ type
     procedure Move2Start;
     procedure SetLazer;
     procedure MoveMirrorCom(pos: word);
+    procedure write_to_com(byte1, byte2: Byte);
   end;
 
   TRunThread = class(TThread)
@@ -623,6 +624,10 @@ begin
       ShowMessage('Ошибка подключения пьезоэлемента!');
       exit;
     end;
+
+    write_to_com(byte(cfg.Shifts[1]), 16);
+    write_to_com(byte(cfg.Shifts[2]), 48);
+
     {p[0]:=0;
     p[1]:=32;
     p[2]:=1;
@@ -723,7 +728,8 @@ begin
                vt.Clear;
 
                s:=Form2.ListView2.Items[0].SubItems[1];
-               ProjectData.prop_.WaveLength:= cfg.lambda;
+               ProjectData.prop_.WaveLength:= cfg.LazerLambda[0];
+               ProjectData.prop_.how_many_wavelengths:= 1;
                ProjectData.prop_.file_path:= ExtractFilePath(s);
                ProjectData.prop_.project_name:='New Project';
                ProjectData.prop_.file_name:='New Project.winPhast';
@@ -2143,6 +2149,17 @@ begin
       SaveProject(ProjectData);
   end;
 
+  if cfg.how_many_wavelengths = 1 then
+  begin
+    case cfg.LazerNum of
+      0: write_to_com(0,0);
+      1: write_to_com(0,64);
+      2: write_to_com(0,32);
+    end;
+  end
+  else
+    write_to_com(0,64);
+
   ProjectData.Clear;
   SaveDialog1.Filter:='winPhast project|*.winPhast';
   SaveDialog1.Title:= 'Введите имя нового проекта';
@@ -2154,8 +2171,15 @@ begin
   ProjectData.prop_.file_path:= AnsiString(ExtractFilePath(SaveDialog1.FileName));
   ProjectData.prop_.project_name:=  ChangeFileExt( ExtractFileName(SaveDialog1.FileName), '');
   ProjectData.prop_.file_name:= AnsiString(ProjectData.prop_.project_name + '.winPhast' );
+  ProjectData.prop_.how_many_wavelengths:= cfg.how_many_wavelengths;
 
-  ProjectData.prop_.WaveLength:= cfg.lambda;
+  if cfg.how_many_wavelengths = 1 then
+    ProjectData.prop_.WaveLength:= cfg.LazerLambda[cfg.LazerNum]
+  else
+  begin
+    ProjectData.prop_.WaveLength:= cfg.LazerLambda[1];
+    ProjectData.prop_.WaveLength2:= cfg.LazerLambda[2];
+  end;
 
   if cfg.Fizo then
     ProjectData.prop_.type_:= ptFizo
@@ -2219,11 +2243,15 @@ begin
     cfg.scl_eye:=(cfg.w1/cfg.cam_w+cfg.h1/cfg.cam_h)/2;
 
     Off(false);
+    Form9.AlphaBlendValue:= 255;
+    cfg.transp:= 255;
+
     n2.Enabled:=true;
     n80.Enabled:=true;
     form9.Label6.Caption:=cfg.img_path;
     form9.Label6.Hint:=cfg.img_path;
     form9.ScrollBar3.Position:=cfg.transp;
+
 
     CurrentMatrix:=cmVideo_;
     VideoCaptureMode:=cmVideo;
@@ -2278,8 +2306,19 @@ begin
     if cfg.Com_phase_shift then
       DirectShowVideoForm.ScrollBar2.Max:=4095;
 
-    DirectShowVideoForm.ScrollBar2.Position:=cfg.m_shift;
-    DirectShowVideoForm.Label1.Caption:=inttostr(cfg.m_shift);
+    if cfg.how_many_wavelengths = 1 then
+    begin
+      DirectShowVideoForm.ScrollBar2.Position:=cfg.Shifts[cfg.LazerNum];
+      DirectShowVideoForm.Label1.Caption:=inttostr(cfg.Shifts[cfg.LazerNum]);
+    end
+    else
+    begin
+      DirectShowVideoForm.ScrollBar2.Position:=cfg.Shifts[1];
+      DirectShowVideoForm.Label1.Caption:=inttostr(cfg.Shifts[1]);
+    end;
+
+//    DirectShowVideoForm.ScrollBar2.Position:=cfg.m_shift;
+//    DirectShowVideoForm.Label1.Caption:=inttostr(cfg.m_shift);
     DirectShowVideoForm.Show;
   end;
 {  ExecuteFile:= ExtractFilePath(Application.ExeName)+'Capture\TVMicro_2p.exe';
@@ -2529,11 +2568,21 @@ begin
 
   with form6, cfg do
   begin
-    ed[0].Text:=FloatToStr(h1);
-    ed[1].Text:=FloatToStr(w1);
+//    ed[0].Text:=FloatToStr(h1);
+//    ed[1].Text:=FloatToStr(w1);
+    width_edit.Text:= FloatToStr(w1);
+    height_edit.Text:= FloatToStr(h1);
    // ed[2].Text:=IntToStr(h2);
    // ed[3].Text:=IntToStr(w2);
-    ed[4].Text:=FloatToStr(lambda);
+//    ed[4].Text:=FloatToStr(lambda);
+
+    Lazer_num_group.ItemIndex:= LazerNum;
+    Lambda1_edit.Text:= FloatToStr(LazerLambda[0]);
+    Lambda2_edit.Text:= FloatToStr(LazerLambda[1]);
+    Lambda3_edit.Text:= FloatToStr(LazerLambda[2]);
+
+    How_many_wavelengths_group.ItemIndex:= how_many_wavelengths - 1;
+
     ed[5].Text:=FloatToStr(z);
     ed[6].Text:=IntToStr(steps);
     ed1.Text:=IntToHex(port, 4);
@@ -2584,19 +2633,19 @@ begin
     Edit16.Text:=IntToStr(Fizo_amp);
     Edit17.Text:=IntToStr(Fizo_t);
     Edit18.Text:=IntToStr(Fizo_Frames);
-
-    if cfg.ComMode then
-    begin
-      ComboBox3.Visible:=true;
-      Label28.Visible:=true;
-      Label5.Visible:=false;
-      Label6.Visible:=false;
-      ComboBox3.Items.Clear;
-      ComboBox3.Items.Add({'Синий '+}FloatToStr(cfg.LazerLambda[0])+' нм.');
-      ComboBox3.Items.Add({'Зеленый '+}FloatToStr(cfg.LazerLambda[1])+' нм.');
-      ComboBox3.Items.Add({'Красный '+}FloatToStr(cfg.LazerLambda[2])+' нм.');
-      ComboBox3.ItemIndex:=cfg.LazerNum;
-    end;
+//
+//    if cfg.ComMode then
+//    begin
+//      ComboBox3.Visible:=true;
+//      Label28.Visible:=true;
+//      Label5.Visible:=false;
+//      Label6.Visible:=false;
+//      ComboBox3.Items.Clear;
+//      ComboBox3.Items.Add({'Синий '+}FloatToStr(cfg.LazerLambda[0])+' нм.');
+//      ComboBox3.Items.Add({'Зеленый '+}FloatToStr(cfg.LazerLambda[1])+' нм.');
+//      ComboBox3.Items.Add({'Красный '+}FloatToStr(cfg.LazerLambda[2])+' нм.');
+//      ComboBox3.ItemIndex:=cfg.LazerNum;
+//    end;
 
     if cfg.Com_phase_shift then
     begin
@@ -2610,9 +2659,18 @@ begin
     if ShowModal <> mrOk then
       exit;
 
-    h1:=StrToFloat(ed[0].Text);
-    w1:=StrToFloat(ed[1].Text);
-    lambda:=StrToFloat(ed[4].Text);
+    w1:= CheckString(width_edit.Text);
+    h1:= CheckString(height_edit.Text);
+//    h1:=StrToFloat( {ed[0].Text});
+//    w1:=StrToFloat(ed[1].Text);
+//    lambda:=StrToFloat(ed[4].Text);
+
+    LazerNum:= Lazer_num_group.ItemIndex;
+    LazerLambda[0]:= CheckString(Lambda1_edit.Text);
+    LazerLambda[1]:= CheckString(Lambda2_edit.Text);
+    LazerLambda[2]:= CheckString(Lambda3_edit.Text);
+    how_many_wavelengths:= How_many_wavelengths_group.ItemIndex + 1;
+
     q:=ComboBox1.ItemIndex+1;
     pal:=ComboBox2.ItemIndex;
     z:=CheckString(ed[5].Text);
@@ -2650,7 +2708,7 @@ begin
 
     scl_eye:=(w1/cam_w+h1/cam_h)/2;
 
-    cfg.LazerNum:=ComboBox3.ItemIndex;
+//    cfg.LazerNum:=ComboBox3.ItemIndex;
     TiltMask:=RadioGroup1.ItemIndex;
 
     if ComConnected and (cfg.ComMode) then
@@ -3041,6 +3099,15 @@ begin
   for i:=0 to 255 do
     DirectShowVideoForm.Series1.Add(VidCap1.CB.Hist[i]);
   DirectShowVideoForm.Chart1.Update;
+end;
+
+procedure TForm1.write_to_com(byte1, byte2: Byte);
+var p: array[0..2] of byte;
+begin
+  p[0]:=byte1;
+  p[1]:=byte2;
+  p[2]:=15;
+  CommPortDriver1.SendData(@(p), 3);
 end;
 
 procedure TForm1.EMP1Click(Sender: TObject);
@@ -4754,7 +4821,7 @@ begin
 //  p[1]:=128;
 //  p[1]:=p[1]+128;
   p[0]:=LowByte(pos);
-  p[1]:=HiByte(pos)+128;
+  p[1]:=HiByte(pos)+192;
   p[2]:=15;
   CommPortDriver1.SendData(@(p), 3);
 

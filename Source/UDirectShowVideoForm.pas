@@ -105,7 +105,13 @@ begin
   else
     MoveMirror(cfg.port, ScrollBar2.Position);
   Label1.Caption:=IntToStr(ScrollBar2.Position);
-  cfg.m_shift:=ScrollBar2.Position;
+
+  if cfg.how_many_wavelengths = 1 then
+    cfg.Shifts[cfg.LazerNum]:= ScrollBar2.Position
+  else
+    cfg.Shifts[1]:= ScrollBar2.Position;
+
+//    cfg.m_shift:=ScrollBar2.Position;
 end;
 
 end.

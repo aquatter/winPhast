@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, EditR, StdCtrls, ExtCtrls, Crude, Spin, utype, ToolWin;
+  Dialogs, ComCtrls, EditR, StdCtrls, ExtCtrls, Crude, Spin, utype, ToolWin,
+  Grids, ValEdit;
 
 type
   TMyEdit = class(TEdit)
@@ -22,8 +23,6 @@ type
     GroupBox1: TGroupBox;
     Label1: TLabel;
     Label2: TLabel;
-    Label5: TLabel;
-    Label6: TLabel;
     Label7: TLabel;
     Label8: TLabel;
     Label9: TLabel;
@@ -74,8 +73,6 @@ type
     Label25: TLabel;
     Label26: TLabel;
     Label27: TLabel;
-    ComboBox3: TComboBox;
-    Label28: TLabel;
     CheckBox8: TCheckBox;
     Label29: TLabel;
     Edit2: TEdit;
@@ -116,6 +113,13 @@ type
     Edit20: TEdit;
     Edit21: TEdit;
     Image1: TImage;
+    Lambda2_edit: TEdit;
+    Lambda3_edit: TEdit;
+    How_many_wavelengths_group: TRadioGroup;
+    height_edit: TEdit;
+    width_edit: TEdit;
+    Lambda1_edit: TEdit;
+    Lazer_num_group: TRadioGroup;
     procedure FormCreate(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -152,28 +156,28 @@ uses unit1, UPhast2Vars, FileCtrl, ShellApi, USaveAsForm;
 procedure TForm6.FormCreate(Sender: TObject);
 var i: integer;
 begin
-  for i:=0 to 6 do
+  for i:=5 to 6 do
   begin
     ed[i]:=TEditR.Create(Self);
     ed[i].Parent:=GroupBox1;
     ed[i].Width:=44;
     ed[i].Height:=21;
   end;
-  ed[4].Parent:=TabSheet1;
+//  ed[4].Parent:=TabSheet1;
   ed[5].Parent:=TabSheet2;
-  ed[0].Top:=52;
-  ed[0].Left:=104;
-  ed[1].Top:=52;
-  ed[1].Left:=176;
-  ed[2].Top:=52;
-  ed[2].Left:=176;
-  ed[2].Visible:=false;
-  ed[3].Top:=80;
-  ed[3].Left:=130;
-  ed[3].Visible:=false;
-  ed[4].Top:=135;
-  ed[4].Left:=88;
-  ed[4].Visible:=not cfg.ComMode;
+//  ed[0].Top:=52;
+//  ed[0].Left:=104;
+//  ed[1].Top:=52;
+//  ed[1].Left:=176;
+//  ed[2].Top:=52;
+//  ed[2].Left:=176;
+//  ed[2].Visible:=false;
+//  ed[3].Top:=80;
+//  ed[3].Left:=130;
+//  ed[3].Visible:=false;
+//  ed[4].Top:=135;
+//  ed[4].Left:=88;
+//  ed[4].Visible:=not cfg.ComMode;
   ed[5].Top:=144;
   ed[5].Left:=174;
   ed[6].Parent:=TabSheet3;

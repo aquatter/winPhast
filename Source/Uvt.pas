@@ -20,6 +20,7 @@ type
   TParamType = (
     ptNone,
     ptWaveLength,
+    ptWaveLength2,
     ptDoTilt,
     ptDoUnwrap,
     ptDoMean,
@@ -39,7 +40,12 @@ type
     ntMask2,
     ntAmp,
     ntCombinedMask,
-    ntMean_Unwrap
+    ntMean_Unwrap,
+    ntWaveLength2_root,
+    ntImage2_root,
+    ntImage2,
+    ntPhase2,
+    ntAmp2
   );
 
 
@@ -152,7 +158,7 @@ begin
 end;
 
 procedure AddToVt(var pd: TProjectData);
-var t, seq_, rec_, img, img_root, p, param_node, masks_node: PVirtualNode;
+var t, seq_, rec_, img, img_root, p, param_node, masks_node, wavelength2_node: PVirtualNode;
     d: PVtNodeData;
     i, j, k: integer;
 begin
@@ -184,11 +190,28 @@ begin
         d:= vt.GetNodeData(p);
         if Assigned(d) then
         begin
-          d^.name:= 'Длина волны: ' + FloatToStrF(pd.prop_.WaveLength, ffFixed, 5, 2)+'нм.';
+          d^.name:= 'Длина волны 1: ' + FloatToStrF(pd.prop_.WaveLength, ffFixed, 5, 2)+'нм.';
           d^.param_type_:= ptWaveLength;
           d^.ValueType:= vtString;
           d^.type_:= ntParam;
           d^.pd:= pd;
+        end;
+      end;
+
+      if pd.prop_.how_many_wavelengths = 2 then
+      begin
+        p:= vt.AddChild(param_node);
+        if Assigned(p) then
+        begin
+          d:= vt.GetNodeData(p);
+          if Assigned(d) then
+          begin
+            d^.name:= 'Длина волны 2: ' + FloatToStrF(pd.prop_.WaveLength2, ffFixed, 5, 2)+'нм.';
+            d^.param_type_:= ptWaveLength2;
+            d^.ValueType:= vtString;
+            d^.type_:= ntParam;
+            d^.pd:= pd;
+          end;
         end;
       end;
       {
@@ -334,7 +357,7 @@ begin
           d^.ValueType:= vtNone;
         end;
 
-        for j:=0 to pd.Get(i).Count-1 do
+        for j:=0 to pd[i].Count-1 do
         begin
           rec_:= vt.AddChild(seq_);
 
@@ -357,7 +380,7 @@ begin
 
             if Assigned(img_root) then
             begin
-              img_root^.States:= img_root^.States + [vsExpanded];
+//              img_root^.States:= img_root^.States + [vsExpanded];
               d:= PVtNodeData(vt.GetNodeData(img_root));
 
               if Assigned(d) then
@@ -370,7 +393,7 @@ begin
                 d^.ValueType:= vtNone;
               end;
 
-              for k:=0 to pd.Get(i).Get(j).img.Count-1 do
+              for k:=0 to pd[i][j].img.Count-1 do
               begin
                 img:= vt.AddChild(img_root);
 
@@ -400,7 +423,7 @@ begin
               if Assigned(d) then
               begin
                 d^.name:= 'Фаза: ';
-                d^.value:= string(pd.Get(i).Get(j).phase);
+                d^.value:= string(pd[i][j].phase);
                 d^.type_:= ntPhase;
                 d^.num_seq:= i;
                 d^.num_rec:= j;
@@ -417,12 +440,104 @@ begin
               if Assigned(d) then
               begin
                 d^.name:= 'Амплитуда: ';
-                d^.value:= string(pd.Get(i).Get(j).amp);
+                d^.value:= string(pd[i][j].amp);
                 d^.type_:= ntAmp;
                 d^.num_seq:= i;
                 d^.num_rec:= j;
                 d^.pd:= pd;
                 d^.ValueType:= vtNone;
+              end;
+            end;
+
+            if pd.prop_.how_many_wavelengths = 2 then
+            begin
+              wavelength2_node:= vt.AddChild(rec_);
+              if Assigned(wavelength2_node) then
+              begin
+
+                wavelength2_node.States:= wavelength2_node.States + [vsExpanded];
+
+                d:= PVtNodeData(vt.GetNodeData(wavelength2_node));
+                if Assigned(d) then
+                begin
+                  d^.name:= 'Длина волны 2';
+                  d^.type_:= ntWaveLength2_root;
+                  d^.num_seq:= i;
+                  d^.num_rec:= j;
+                  d^.pd:= pd;
+                  d^.ValueType:= vtNone;
+                end;
+
+
+                img_root:= vt.AddChild(wavelength2_node);
+                if Assigned(img_root) then
+                begin
+                  d:= PVtNodeData(vt.GetNodeData(img_root));
+                  if Assigned(d) then
+                  begin
+                    d^.name:= 'Интерферограммы';
+                    d^.type_:= ntImage2_root;
+                    d^.num_seq:= i;
+                    d^.num_rec:= j;
+                    d^.pd:= pd;
+                    d^.ValueType:= vtNone;
+                  end;
+
+                  for k:=0 to pd[i][j].img2.Count-1 do
+                  begin
+                    img:= vt.AddChild(img_root);
+
+                    if Assigned(img) then
+                    begin
+                      d:= PVtNodeData(vt.GetNodeData(img));
+
+                      if Assigned(d) then
+                      begin
+                        d^.name:= string(pd[i][j].img2[k]);
+                        d^.type_:= ntImage2;
+                        d^.num_seq:= i;
+                        d^.num_rec:= j;
+                        d^.num_img:= k;
+                        d^.pd:= pd;
+                        d^.ValueType:= vtNone;
+                      end;
+                    end;
+                  end;
+                end;
+
+                p:= vt.AddChild(wavelength2_node);
+
+                if Assigned(p) then
+                begin
+                  d:= PVtNodeData(vt.GetNodeData(p));
+                  if Assigned(d) then
+                  begin
+                    d^.name:= 'Фаза: ';
+                    d^.value:= string(pd[i][j].phase2);
+                    d^.type_:= ntPhase2;
+                    d^.num_seq:= i;
+                    d^.num_rec:= j;
+                    d^.pd:= pd;
+                    d^.ValueType:= vtNone;
+                  end;
+                end;
+
+                p:= vt.AddChild(wavelength2_node);
+
+                if Assigned(p) then
+                begin
+                  d:= PVtNodeData(vt.GetNodeData(p));
+                  if Assigned(d) then
+                  begin
+                    d^.name:= 'Амплитуда: ';
+                    d^.value:= string(pd[i][j].amp2);
+                    d^.type_:= ntAmp2;
+                    d^.num_seq:= i;
+                    d^.num_rec:= j;
+                    d^.pd:= pd;
+                    d^.ValueType:= vtNone;
+                  end;
+                end;
               end;
             end;
 
@@ -514,8 +629,13 @@ begin
     if Assigned(d) then
     begin
       case d^.type_ of
-        ntImage: begin
-                   s:= string(d^.pd.prop_.file_path + d^.name);
+        ntImage, ntImage2: begin
+
+                   if d^.type_ = ntImage then
+                     s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].img[d^.num_img])
+                   else
+                     s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].img2[d^.num_img]);
+
                    if FileExists(s) then
                    begin
                      LoadBmp(phase, s, varDouble);
@@ -523,8 +643,12 @@ begin
                    end;
                  end;
 
-        ntPhase: begin
-                   s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].phase);
+        ntPhase, ntPhase2: begin
+                   if d^.type_ = ntPhase then
+                     s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].phase)
+                   else
+                     s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].phase2);
+
                    if FileExists(s) then
                    begin
                      phase._type:= varDouble;
@@ -534,13 +658,22 @@ begin
                    else
                    begin
                      d^.pd.ClearCalculation;
-                     d^.pd[d^.num_seq][d^.num_rec].Add2Calculation(calcPhase);
+
+                     if d^.type_ = ntPhase then
+                       d^.pd[d^.num_seq][d^.num_rec].Add2Calculation(calcPhase)
+                     else
+                       d^.pd[d^.num_seq][d^.num_rec].Add2Calculation(calcPhase2);
+
                      d^.pd[d^.num_seq][d^.num_rec].phase_calculated:= false;
                      StartCalculationThread(d^.pd);
                    end;
                  end;
-        ntAmp: begin
-                 s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].amp);
+        ntAmp, ntAmp2: begin
+                 if d^.type_ = ntAmp then
+                   s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].amp)
+                 else
+                   s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].amp2);
+
                  if FileExists(s) then
                  begin
                    phase._type:= varDouble;
@@ -550,7 +683,10 @@ begin
                  else
                  begin
                    d^.pd.ClearCalculation;
-                   d^.pd.Get(d^.num_seq).Get(d^.num_rec).Add2Calculation(calcAmp);
+                   if d^.type_ = ntAmp then
+                     d^.pd[d^.num_seq][d^.num_rec].Add2Calculation(calcAmp)
+                   else
+                     d^.pd[d^.num_seq][d^.num_rec].Add2Calculation(calcAmp2);
                    StartCalculationThread(d^.pd);
                  end;
                end;
@@ -822,6 +958,12 @@ begin
                                  Data^.pd.prop_.WaveLength:= new_wl;
                                  Data^.name:= 'Длина волны: ' + FloatToStrF(Data^.pd.prop_.WaveLength, ffFixed, 5, 2);
                                end;
+                 ptWaveLength2: begin
+                                  new_wl:= CheckString(s);
+                                  changed:= Data^.pd.prop_.WaveLength2 <> new_wl;
+                                  Data^.pd.prop_.WaveLength2:= new_wl;
+                                  Data^.name:= 'Длина волны: ' + FloatToStrF(Data^.pd.prop_.WaveLength2, ffFixed, 5, 2);
+                                end;
                  ptDoTilt: begin
                              changed:= Data^.pd.prop_.doTilt <> b;
                              Data^.pd.prop_.doTilt:= b;
@@ -891,7 +1033,8 @@ begin
             Text:= Data^.pd.prop_.project_name;
           if Data^.param_type_= ptWaveLength  then
             Text:= FloatToStrF(Data^.pd.prop_.WaveLength, ffFixed, 5, 2);
-
+          if Data^.param_type_= ptWaveLength2  then
+            Text:= FloatToStrF(Data^.pd.prop_.WaveLength2, ffFixed, 5, 2);
           OnKeyDown := EditKeyDown;
         end;
       end;
@@ -1181,11 +1324,18 @@ begin
     begin
       case d^.type_ of
         ntImage: ;
-        ntPhase, ntAmp: begin
-                   if d^.type_ = ntPhase then
+        ntPhase, ntAmp, ntPhase2, ntAmp2: begin
+                   case d^.type_ of
+                     ntPhase: s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].phase);
+                     ntPhase2: s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].phase2);
+                     ntAmp: s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].amp);
+                     ntAmp2: s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].amp2);
+                   end;
+
+                   {if d^.type_ = ntPhase then
                      s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].phase)
                    else
-                     s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].amp);
+                     s:= string(d^.pd.prop_.file_path + d^.pd[d^.num_seq][d^.num_rec].amp);}
 
                    if FileExists(s) then
                    begin

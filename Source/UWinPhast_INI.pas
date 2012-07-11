@@ -63,6 +63,8 @@ begin
     p.Com_Step_Motor:=f.ReadBool('Microscope', 'Com_Step_Motor', false);
     s:=f.ReadString('Microscope', 'N_photo', '2');
     p.n_photo:=CheckString(s);
+    p.how_many_wavelengths:=f.ReadInteger('Microscope', 'how_many_wavelengths', 1);
+
 
     p.q:=f.ReadInteger('3D', 'Quality', 1);
     p.pal:=f.ReadInteger('3D', 'Pallete', 1);
@@ -152,6 +154,7 @@ begin
     f.WriteInteger('Microscope', 'Shift1', p.Shifts[1]);
     f.WriteInteger('Microscope', 'Shift2', p.Shifts[2]);
     f.WriteFloat('Microscope', 'N_photo', p.n_photo);
+    f.WriteInteger('Microscope', 'how_many_wavelengths', p.how_many_wavelengths);
 
     f.WriteInteger('3D', 'Quality', p.q);
     f.WriteInteger('3D', 'Pallete', p.pal);

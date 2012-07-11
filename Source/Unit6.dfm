@@ -4,7 +4,7 @@
   BorderStyle = bsDialog
   Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080
   ClientHeight = 582
-  ClientWidth = 365
+  ClientWidth = 369
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -35,27 +35,15 @@
     Top = 8
     Width = 351
     Height = 514
-    ActivePage = TabSheet3
+    ActivePage = TabSheet1
     MultiLine = True
     RaggedRight = True
     TabOrder = 0
     object TabSheet1: TTabSheet
       Caption = #1054#1073#1097#1080#1077
       ImageIndex = 16
-      object Label5: TLabel
-        Left = 9
-        Top = 138
-        Width = 68
-        Height = 13
-        Caption = #1044#1083#1080#1085#1072' '#1074#1086#1083#1085#1099
-      end
-      object Label6: TLabel
-        Left = 146
-        Top = 139
-        Width = 17
-        Height = 13
-        Caption = #1085#1084'.'
-      end
+      ExplicitLeft = 0
+      ExplicitTop = 23
       object Bevel1: TBevel
         Left = 7
         Top = 179
@@ -69,14 +57,6 @@
         Width = 154
         Height = 13
         Caption = #1063#1080#1089#1083#1086' '#1082#1072#1076#1088#1086#1074' '#1076#1083#1103' '#1091#1089#1088#1077#1076#1085#1077#1085#1080#1103
-      end
-      object Label28: TLabel
-        Left = 104
-        Top = 139
-        Width = 32
-        Height = 13
-        Caption = #1051#1072#1079#1077#1088
-        Visible = False
       end
       object Label30: TLabel
         Left = 9
@@ -95,26 +75,56 @@
         ShowHint = True
         WordWrap = True
       end
+      object Lazer_num_group: TRadioGroup
+        Left = 7
+        Top = 66
+        Width = 180
+        Height = 107
+        ItemIndex = 0
+        Items.Strings = (
+          #1044#1083#1080#1085#1072' '#1074#1086#1083#1085#1099' 1'
+          #1044#1083#1080#1085#1072' '#1074#1086#1083#1085#1099' 2'
+          #1044#1083#1080#1085#1072' '#1074#1086#1083#1085#1099' 3')
+        TabOrder = 14
+      end
       object GroupBox1: TGroupBox
         Left = 7
-        Top = 8
+        Top = 3
         Width = 330
-        Height = 105
+        Height = 62
         Caption = #1056#1072#1079#1084#1077#1088' '#1087#1086#1083#1103' '#1079#1088#1077#1085#1080#1103', '#1084#1082#1084'.'
         TabOrder = 0
         object Label1: TLabel
-          Left = 105
-          Top = 31
-          Width = 38
+          Left = 65
+          Top = 29
+          Width = 39
           Height = 13
           Caption = #1042#1099#1089#1086#1090#1072
         end
         object Label2: TLabel
-          Left = 178
-          Top = 31
+          Left = 169
+          Top = 29
           Width = 39
           Height = 13
           Caption = #1064#1080#1088#1080#1085#1072
+        end
+        object height_edit: TEdit
+          Left = 111
+          Top = 26
+          Width = 43
+          Height = 21
+          Alignment = taRightJustify
+          TabOrder = 0
+          Text = '10'
+        end
+        object width_edit: TEdit
+          Left = 216
+          Top = 26
+          Width = 43
+          Height = 21
+          Alignment = taRightJustify
+          TabOrder = 1
+          Text = '10'
         end
       end
       object CheckBox1: TCheckBox
@@ -159,22 +169,13 @@
         TabOrder = 5
         Text = '10'
       end
-      object ComboBox3: TComboBox
-        Left = 154
-        Top = 136
-        Width = 66
-        Height = 21
-        Style = csDropDownList
-        TabOrder = 6
-        Visible = False
-      end
       object Button4: TButton
         Left = 320
         Top = 316
         Width = 17
         Height = 21
         Caption = '...'
-        TabOrder = 7
+        TabOrder = 6
         OnClick = Button4Click
       end
       object RadioGroup1: TRadioGroup
@@ -189,7 +190,7 @@
           #1052#1072#1089#1082#1072' 1'
           #1052#1072#1089#1082#1072' 2'
           #1054#1073#1097#1072#1103' '#1084#1072#1089#1082#1072)
-        TabOrder = 8
+        TabOrder = 7
         WordWrap = True
       end
       object CheckBox12: TCheckBox
@@ -198,7 +199,7 @@
         Width = 255
         Height = 17
         Caption = #1054#1073#1097#1072#1103' '#1084#1072#1089#1082#1072' '#1074#1099#1076#1077#1083#1103#1077#1090' '#1087#1086#1083#1085#1099#1081' '#1101#1082#1088#1072#1085
-        TabOrder = 9
+        TabOrder = 8
       end
       object CheckBox13: TCheckBox
         Left = 7
@@ -206,7 +207,7 @@
         Width = 272
         Height = 17
         Caption = #1057#1086#1093#1088#1072#1085#1103#1090#1100' '#1088#1077#1079#1091#1083#1100#1090#1072#1090#1099' '#1088#1072#1089#1095#1077#1090#1072' '#1089#1077#1088#1080#1080' '#1088#1072#1079#1076#1077#1083#1100#1085#1086
-        TabOrder = 10
+        TabOrder = 9
       end
       object Panel1: TPanel
         Left = 287
@@ -216,7 +217,7 @@
         BevelOuter = bvNone
         Caption = 'Panel1'
         ShowCaption = False
-        TabOrder = 11
+        TabOrder = 10
         object ToolBar1: TToolBar
           Left = 0
           Top = 0
@@ -238,6 +239,45 @@
             OnClick = ToolButton1Click
           end
         end
+      end
+      object Lambda2_edit: TEdit
+        Left = 123
+        Top = 114
+        Width = 43
+        Height = 21
+        Alignment = taRightJustify
+        TabOrder = 11
+        Text = '10'
+      end
+      object Lambda3_edit: TEdit
+        Left = 123
+        Top = 143
+        Width = 43
+        Height = 21
+        Alignment = taRightJustify
+        TabOrder = 12
+        Text = '10'
+      end
+      object How_many_wavelengths_group: TRadioGroup
+        Left = 193
+        Top = 67
+        Width = 141
+        Height = 106
+        Caption = ' '#1056#1077#1078#1080#1084' '#1088#1072#1073#1086#1090#1099' '
+        ItemIndex = 0
+        Items.Strings = (
+          #1054#1076#1085#1072' '#1076#1083#1080#1085#1072' '#1074#1086#1083#1085#1099
+          #1044#1074#1077' '#1076#1083#1080#1085#1099' '#1074#1086#1083#1085#1099)
+        TabOrder = 13
+      end
+      object Lambda1_edit: TEdit
+        Left = 123
+        Top = 85
+        Width = 43
+        Height = 21
+        Alignment = taRightJustify
+        TabOrder = 15
+        Text = '10'
       end
     end
     object TabSheet2: TTabSheet

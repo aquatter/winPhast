@@ -73,7 +73,7 @@ uses
 function TProjectCalculationThread.CalculatePhase(img: TList<AnsiString>; num_seq, num_rec: integer; what_to_calc: TCalculationList): boolean;
 var images: TPointerArray;
     w, h, i: integer;
-    s: string;
+    s, phase_path, amp_path: string;
 begin
   w:= pd_.prop_.w;
   h:= pd_.prop_.h;
@@ -103,22 +103,32 @@ begin
 
   FindPhase(phase, amp, phase, images, img.Count);
 
-  s:= string(pd_.prop_.file_path) + 'phase_'+IntToStr(num_seq+1)+'_'+IntToStr(num_rec+1)+'.bin';
+  case what_to_calc of
+    calcPhase, calcAmp:
+    begin
+      phase_path:= string(pd_.prop_.file_path) + 'phase_'+IntToStr(num_seq+1)+'_'+IntToStr(num_rec+1)+'.bin';
+      amp_path:= string(pd_.prop_.file_path) + 'amp_'+IntToStr(num_seq+1)+'_'+IntToStr(num_rec+1)+'.bin';
+      pd_[num_seq][num_rec].phase:= AnsiString('phase_'+IntToStr(num_seq+1)+'_'+IntToStr(num_rec+1)+'.bin');
+      pd_[num_seq][num_rec].amp:= AnsiString('amp_'+IntToStr(num_seq+1)+'_'+IntToStr(num_rec+1)+'.bin');
+    end;
+    calcPhase2, calcAmp2:
+    begin
+      phase_path:= string(pd_.prop_.file_path) + 'phase2_'+IntToStr(num_seq+1)+'_'+IntToStr(num_rec+1)+'.bin';
+      amp_path:= string(pd_.prop_.file_path) + 'amp2_'+IntToStr(num_seq+1)+'_'+IntToStr(num_rec+1)+'.bin';
+      pd_[num_seq][num_rec].phase2:= AnsiString('phase2_'+IntToStr(num_seq+1)+'_'+IntToStr(num_rec+1)+'.bin');
+      pd_[num_seq][num_rec].amp2:= AnsiString('amp2_'+IntToStr(num_seq+1)+'_'+IntToStr(num_rec+1)+'.bin');
+    end;
+  end;
 
-  CreateBin(phase, s);
-  pd_[num_seq][num_rec].phase:= AnsiString('phase_'+IntToStr(num_seq+1)+'_'+IntToStr(num_rec+1)+'.bin');
-
-  s:= string(pd_.prop_.file_path) + 'amp_'+IntToStr(num_seq+1)+'_'+IntToStr(num_rec+1)+'.bin';
-
-  CreateBin(amp, s);
-  pd_[num_seq][num_rec].amp:= AnsiString('amp_'+IntToStr(num_seq+1)+'_'+IntToStr(num_rec+1)+'.bin');
+  CreateBin(phase, phase_path);
+  CreateBin(amp, amp_path);
 
   Synchronize(
   procedure
   begin
     case what_to_calc of
-      calcPhase: pnl.DrawImage(phase, phase);
-      calcAmp: pnl.DrawImage(amp, amp);
+      calcPhase, calcPhase2: pnl.DrawImage(phase, phase);
+      calcAmp, calcAmp2: pnl.DrawImage(amp, amp);
     end;
   end
   );
@@ -259,6 +269,7 @@ procedure TProjectCalculationThread.Execute;
 var i,j,k, mean_cnt: integer;
     rec_: TRec;
     s: AnsiString;
+    img_list: TList<AnsiString>;
 begin
   phase:= TMyInfernalType.Create;
   amp:= TMyInfernalType.Create;
@@ -292,9 +303,14 @@ begin
         rec_:= pd_[i][j];
         for k:=0 to Length(rec_.what_to_calc)-1 do
           case rec_.what_to_calc[k] of
-            calcPhase, calcAmp:
+            calcPhase, calcAmp, calcPhase2, calcAmp2:
                                 begin
-                                  if not CalculatePhase(rec_.img, i, j, rec_.what_to_calc[k]) then
+                                  case rec_.what_to_calc[k] of
+                                    calcPhase, calcAmp: img_list:= rec_.img;
+                                    calcPhase2, calcAmp2: img_list:= rec_.img2;
+                                  end;
+
+                                  if not CalculatePhase(img_list, i, j, rec_.what_to_calc[k]) then
                                     raise Exception.Create('Ошибка вычисления фазы');
                                 end;
             calcUnwrap:

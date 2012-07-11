@@ -40,6 +40,13 @@ implementation
     pt:= ptree_init;
     ptree_set_int(pt, 'Project.Properties.Type', integer(pd.prop_.type_));
     ptree_set_double(pt, 'Project.Properties.WaveLength', pd.prop_.WaveLength);
+
+    if pd.prop_.how_many_wavelengths = 2 then
+    begin
+      ptree_set_double(pt, 'Project.Properties.WaveLength2', pd.prop_.WaveLength2);
+      ptree_set_int(pt, 'Project.Properties.how_many_wavelengths', pd.prop_.how_many_wavelengths);
+    end;
+
     ptree_set_int(pt, 'Project.Properties.Width', pd.prop_.w);
     ptree_set_int(pt, 'Project.Properties.Height', pd.prop_.h);
 
@@ -91,6 +98,29 @@ implementation
           s1:= 'None';
         ptree_set_string(pt, PAnsiChar(s), PAnsiChar(s1));
 
+        if pd.prop_.how_many_wavelengths = 2 then
+        begin
+          for k:=0 to pd[i][j].img2.Count-1 do
+          begin
+            s:=AnsiString('Project.Serie_' + IntToStr(i)+'.Measurement_'+IntToStr(j)+'.WaveLength_2.Image_'+IntToStr(k));
+            s1:= pd[i][j].img2[k];
+            if not FileExists(string(pd.prop_.file_path + s1)) then
+              s1:= 'None';
+            ptree_set_string(pt, PAnsiChar(s), PAnsiChar(s1));
+          end;
+          s:=AnsiString('Project.Serie_' + IntToStr(i)+'.Measurement_'+IntToStr(j)+'.WaveLength_2.Phase');
+          s1:= pd[i][j].phase2;
+          if not FileExists(string(pd.prop_.file_path + s1)) then
+            s1:= 'None';
+          ptree_set_string(pt, PAnsiChar(s), PAnsiChar(s1));
+
+          s:=AnsiString('Project.Serie_' + IntToStr(i)+'.Measurement_'+IntToStr(j)+'.WaveLength_2.Amplitude');
+          s1:= pd[i][j].amp2;
+          if not FileExists(string(pd.prop_.file_path + s1)) then
+            s1:= 'None';
+          ptree_set_string(pt, PAnsiChar(s), PAnsiChar(s1));
+        end;
+
         s1:= pd.Get(i).Get(j).unwrap;
         if not FileExists(string(pd.prop_.file_path + s1)) then
           s1:= 'None';
@@ -141,7 +171,12 @@ implementation
     pt:= ptree_init;
     ptree_read_xml(pt, PAnsiChar(name));
     pd.prop_.type_:= TProjectType( ptree_get_int(pt, 'Project.Properties.Type') );
+    pd.prop_.how_many_wavelengths:= ptree_get_int(pt, 'Project.Properties.how_many_wavelengths');
     pd.prop_.WaveLength:= ptree_get_double(pt, 'Project.Properties.WaveLength');
+
+    if pd.prop_.how_many_wavelengths = 2 then
+      pd.prop_.WaveLength2:= ptree_get_double(pt, 'Project.Properties.WaveLength2');
+
     pd.prop_.w:= ptree_get_int(pt, 'Project.Properties.Width');
     pd.prop_.h:= ptree_get_int(pt, 'Project.Properties.Height');
 
@@ -199,6 +234,35 @@ implementation
         if not FileExists(string(pd.prop_.file_path + s1)) then
           s1:='файл не найден';
         rec_.amp:= s1;
+
+        if pd.prop_.how_many_wavelengths = 2 then
+        begin
+          for k:=0 to n_int-1 do
+          begin
+            s:=AnsiString('Project.Serie_' + IntToStr(i)+'.Measurement_'+IntToStr(j)+'.WaveLength_2.Image_'+IntToStr(k));
+            s1:= ptree_get_string(pt, PAnsiChar(s));
+            if not FileExists(string(pd.prop_.file_path + s1)) then
+              s1:='Файл не найден';
+
+            rec_.img2.Add(s1);
+          end;
+
+          s:=AnsiString('Project.Serie_' + IntToStr(i)+'.Measurement_'+IntToStr(j)+'.WaveLength_2.Phase');
+          s1:=ptree_get_string(pt, PAnsiChar(s));
+          rec_.phase_calculated:= true;
+          if not FileExists(string(pd.prop_.file_path + s1)) then
+          begin
+            s1:='файл не найден';
+            rec_.phase_calculated:= false;
+          end;
+          rec_.phase2:= s1;
+
+          s:=AnsiString('Project.Serie_' + IntToStr(i)+'.Measurement_'+IntToStr(j)+'.WaveLength_2.Amplitude');
+          s1:=ptree_get_string(pt, PAnsiChar(s));
+          if not FileExists(string(pd.prop_.file_path + s1)) then
+            s1:='файл не найден';
+          rec_.amp2:= s1;
+        end;
 
         rec_.unwrap_calculated:= true;
         s:=AnsiString('Project.Serie_' + IntToStr(i)+'.Measurement_'+IntToStr(j)+'.Unwrap');

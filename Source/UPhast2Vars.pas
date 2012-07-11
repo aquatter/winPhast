@@ -61,6 +61,8 @@ TConfig = record
      Fizo_amp: integer;
      Fizo_t: integer;
      r, r0, r1: integer;
+     how_many_wavelengths: integer;
+
   end;
 
 const
